@@ -48,8 +48,14 @@ function FallingPieces() {
 function Index() {
   return (
     <AppShell>
-      <section className="relative bg-parchment overflow-hidden border-b border-border">
-        <FallingPieces />
+      <section 
+        className="relative bg-parchment overflow-hidden border-b border-border"
+        style={{
+          backgroundImage: "url('/background.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center"
+        }}
+      >
         <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="font-sans text-[11px] uppercase tracking-[0.28em] text-gold mb-4">
