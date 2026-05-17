@@ -45,7 +45,7 @@ function Room() {
         else setSeat("spectator");
         setStatus(data.status === "playing" ? "playing" : "waiting");
       }
-      initGame("friend", 0, "rapid-10", "red");
+      initGame("vs-human-online", 0, "rapid-10", "red");
     })();
 
     const channel = supabase.channel(`room:${roomId}`)
