@@ -9,13 +9,83 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ProRouteImport } from './routes/pro'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LearnRouteImport } from './routes/learn'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ClubsRouteImport } from './routes/clubs'
+import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PuzzlesIndexRouteImport } from './routes/puzzles.index'
 import { Route as PlayIndexRouteImport } from './routes/play.index'
+import { Route as PuzzlesRushRouteImport } from './routes/puzzles.rush'
+import { Route as PlayLocalRouteImport } from './routes/play.local'
+import { Route as PlayFriendRouteImport } from './routes/play.friend'
 import { Route as PlayAiRouteImport } from './routes/play.ai'
+import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProRoute = ProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnRoute = LearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClubsRoute = ClubsRouteImport.update({
+  id: '/clubs',
+  path: '/clubs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalysisRoute = AnalysisRouteImport.update({
+  id: '/analysis',
+  path: '/analysis',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PuzzlesIndexRoute = PuzzlesIndexRouteImport.update({
+  id: '/puzzles/',
+  path: '/puzzles/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayIndexRoute = PlayIndexRouteImport.update({
@@ -23,49 +93,261 @@ const PlayIndexRoute = PlayIndexRouteImport.update({
   path: '/play/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PuzzlesRushRoute = PuzzlesRushRouteImport.update({
+  id: '/puzzles/rush',
+  path: '/puzzles/rush',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayLocalRoute = PlayLocalRouteImport.update({
+  id: '/play/local',
+  path: '/play/local',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayFriendRoute = PlayFriendRouteImport.update({
+  id: '/play/friend',
+  path: '/play/friend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayAiRoute = PlayAiRouteImport.update({
   id: '/play/ai',
   path: '/play/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayRoomIdRoute = PlayRoomIdRouteImport.update({
+  id: '/play/$roomId',
+  path: '/play/$roomId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analysis': typeof AnalysisRoute
+  '/clubs': typeof ClubsRoute
+  '/dashboard': typeof DashboardRoute
+  '/help': typeof HelpRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
+  '/pro': typeof ProRoute
+  '/register': typeof RegisterRoute
+  '/settings': typeof SettingsRoute
+  '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
+  '/play/friend': typeof PlayFriendRoute
+  '/play/local': typeof PlayLocalRoute
+  '/puzzles/rush': typeof PuzzlesRushRoute
   '/play/': typeof PlayIndexRoute
+  '/puzzles/': typeof PuzzlesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analysis': typeof AnalysisRoute
+  '/clubs': typeof ClubsRoute
+  '/dashboard': typeof DashboardRoute
+  '/help': typeof HelpRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
+  '/pro': typeof ProRoute
+  '/register': typeof RegisterRoute
+  '/settings': typeof SettingsRoute
+  '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
+  '/play/friend': typeof PlayFriendRoute
+  '/play/local': typeof PlayLocalRoute
+  '/puzzles/rush': typeof PuzzlesRushRoute
   '/play': typeof PlayIndexRoute
+  '/puzzles': typeof PuzzlesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analysis': typeof AnalysisRoute
+  '/clubs': typeof ClubsRoute
+  '/dashboard': typeof DashboardRoute
+  '/help': typeof HelpRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/learn': typeof LearnRoute
+  '/login': typeof LoginRoute
+  '/pro': typeof ProRoute
+  '/register': typeof RegisterRoute
+  '/settings': typeof SettingsRoute
+  '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
+  '/play/friend': typeof PlayFriendRoute
+  '/play/local': typeof PlayLocalRoute
+  '/puzzles/rush': typeof PuzzlesRushRoute
   '/play/': typeof PlayIndexRoute
+  '/puzzles/': typeof PuzzlesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/play/ai' | '/play/'
+  fullPaths:
+    | '/'
+    | '/analysis'
+    | '/clubs'
+    | '/dashboard'
+    | '/help'
+    | '/leaderboard'
+    | '/learn'
+    | '/login'
+    | '/pro'
+    | '/register'
+    | '/settings'
+    | '/play/$roomId'
+    | '/play/ai'
+    | '/play/friend'
+    | '/play/local'
+    | '/puzzles/rush'
+    | '/play/'
+    | '/puzzles/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/play/ai' | '/play'
-  id: '__root__' | '/' | '/play/ai' | '/play/'
+  to:
+    | '/'
+    | '/analysis'
+    | '/clubs'
+    | '/dashboard'
+    | '/help'
+    | '/leaderboard'
+    | '/learn'
+    | '/login'
+    | '/pro'
+    | '/register'
+    | '/settings'
+    | '/play/$roomId'
+    | '/play/ai'
+    | '/play/friend'
+    | '/play/local'
+    | '/puzzles/rush'
+    | '/play'
+    | '/puzzles'
+  id:
+    | '__root__'
+    | '/'
+    | '/analysis'
+    | '/clubs'
+    | '/dashboard'
+    | '/help'
+    | '/leaderboard'
+    | '/learn'
+    | '/login'
+    | '/pro'
+    | '/register'
+    | '/settings'
+    | '/play/$roomId'
+    | '/play/ai'
+    | '/play/friend'
+    | '/play/local'
+    | '/puzzles/rush'
+    | '/play/'
+    | '/puzzles/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalysisRoute: typeof AnalysisRoute
+  ClubsRoute: typeof ClubsRoute
+  DashboardRoute: typeof DashboardRoute
+  HelpRoute: typeof HelpRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  LearnRoute: typeof LearnRoute
+  LoginRoute: typeof LoginRoute
+  ProRoute: typeof ProRoute
+  RegisterRoute: typeof RegisterRoute
+  SettingsRoute: typeof SettingsRoute
+  PlayRoomIdRoute: typeof PlayRoomIdRoute
   PlayAiRoute: typeof PlayAiRoute
+  PlayFriendRoute: typeof PlayFriendRoute
+  PlayLocalRoute: typeof PlayLocalRoute
+  PuzzlesRushRoute: typeof PuzzlesRushRoute
   PlayIndexRoute: typeof PlayIndexRoute
+  PuzzlesIndexRoute: typeof PuzzlesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pro': {
+      id: '/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof ProRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn': {
+      id: '/learn'
+      path: '/learn'
+      fullPath: '/learn'
+      preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clubs': {
+      id: '/clubs'
+      path: '/clubs'
+      fullPath: '/clubs'
+      preLoaderRoute: typeof ClubsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analysis': {
+      id: '/analysis'
+      path: '/analysis'
+      fullPath: '/analysis'
+      preLoaderRoute: typeof AnalysisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/puzzles/': {
+      id: '/puzzles/'
+      path: '/puzzles'
+      fullPath: '/puzzles/'
+      preLoaderRoute: typeof PuzzlesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/play/': {
@@ -75,6 +357,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/puzzles/rush': {
+      id: '/puzzles/rush'
+      path: '/puzzles/rush'
+      fullPath: '/puzzles/rush'
+      preLoaderRoute: typeof PuzzlesRushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/local': {
+      id: '/play/local'
+      path: '/play/local'
+      fullPath: '/play/local'
+      preLoaderRoute: typeof PlayLocalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/friend': {
+      id: '/play/friend'
+      path: '/play/friend'
+      fullPath: '/play/friend'
+      preLoaderRoute: typeof PlayFriendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/ai': {
       id: '/play/ai'
       path: '/play/ai'
@@ -82,13 +385,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayAiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/$roomId': {
+      id: '/play/$roomId'
+      path: '/play/$roomId'
+      fullPath: '/play/$roomId'
+      preLoaderRoute: typeof PlayRoomIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalysisRoute: AnalysisRoute,
+  ClubsRoute: ClubsRoute,
+  DashboardRoute: DashboardRoute,
+  HelpRoute: HelpRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  LearnRoute: LearnRoute,
+  LoginRoute: LoginRoute,
+  ProRoute: ProRoute,
+  RegisterRoute: RegisterRoute,
+  SettingsRoute: SettingsRoute,
+  PlayRoomIdRoute: PlayRoomIdRoute,
   PlayAiRoute: PlayAiRoute,
+  PlayFriendRoute: PlayFriendRoute,
+  PlayLocalRoute: PlayLocalRoute,
+  PuzzlesRushRoute: PuzzlesRushRoute,
   PlayIndexRoute: PlayIndexRoute,
+  PuzzlesIndexRoute: PuzzlesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
