@@ -26,44 +26,44 @@ GitHub: https://github.com/shakentema-cloud/checker.com
 
 ## What I actually built
 
-**A full game engine** — diagonal movement, mandatory captures, 
+**A full game engine** - diagonal movement, mandatory captures, 
 chain jumps, king promotion, winner detection. Zero shortcuts. 
 If the rule exists, the engine enforces it.
 
-**AI opponent with 4 difficulty levels** — from 400 ELO Novice 
+**AI opponent with 4 difficulty levels** - from 400 ELO Novice 
 to 1900 ELO Master. Built on minimax with alpha-beta pruning. 
 The hard level actually thinks.
 
-**AI Coach** — after every game, it tells you what went wrong 
+**AI Coach** - after every game, it tells you what went wrong 
 and why. Not engine output. Plain language. "You left your back 
 row open on move 8. Here is the pattern." Nobody else has this 
 for checkers. Not one platform.
 
-**Move accuracy scoring** — every move you make is classified. 
+**Move accuracy scoring** - every move you make is classified. 
 Brilliant. Great. Good. Inaccuracy. Mistake. Blunder. 
 Like chess.com's game review, but for checkers.
 Which has never existed before.
 
-**Daily Tactics** — one puzzle per day. Streak system. 
+**Daily Tactics** - one puzzle per day. Streak system. 
 Solve it fast, climb the speed leaderboard. Miss a day, 
 your streak dies. Simple hook. It works.
 
-**3-Minute Rush** — solve as many tactical positions as possible 
+**3-Minute Rush** - solve as many tactical positions as possible 
 before time runs out. Three mistakes and it's over. 
 Our Puzzle Rush. Completely addictive.
 
-**City Leaderboards** — not just global. Top 10 in Almaty. 
+**City Leaderboards** - not just global. Top 10 in Almaty. 
 Top 100 in Kazakhstan. Local pride is a real thing. 
 No other checkers platform thought about this.
 
-**Friend Rooms** — 6-character code, share the link, 
+**Friend Rooms** - 6-character code, share the link, 
 opponent joins, game starts. Real-time. Anti-stall timer built in. 
 No toxic stalling.
 
-**6 piece color options** — Oxblood. Forest. Gold. Ivory. 
+**6 piece color options** - Oxblood. Forest. Gold. Ivory. 
 Midnight. Crimson. Choose what represents you.
 
-**Pro tier ($4.99/month)** — unlimited coaching, puzzle rush, 
+**Pro tier ($4.99/month)** - unlimited coaching, puzzle rush, 
 game replay export, premium board themes. No ads ever. 
 That last part is also a product decision, not just a feature.
 
@@ -89,11 +89,11 @@ I built the product.
 
 - Next.js 14, TypeScript, Tailwind CSS
 - Zustand for game state
-- Supabase — auth, database, real-time
-- Socket.io — WebSocket multiplayer
-- Minimax + alpha-beta pruning — AI engine
-- Stripe — Pro subscription
-- Vercel + Railway — deployment
+- Supabase - auth, database, real-time
+- Socket.io - WebSocket multiplayer
+- Minimax + alpha-beta pruning - AI engine
+- Stripe - Pro subscription
+- Vercel + Railway - deployment
 
 ---
 
@@ -125,5 +125,4 @@ That is the niche. That is the moat.
 
 ---
 
-Built by Temirkhan Shaken
-Almaty, Kazakhstan · 2025
+Built by Temirkhan Shaken, Kazakhstan · 2026
