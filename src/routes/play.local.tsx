@@ -26,7 +26,7 @@ function PlayLocal() {
   const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    if (!started) { initGame("local", 0, "rapid-10", "red"); setStarted(true); }
+    if (!started) { initGame("vs-human-local", 0, "rapid-10", "red"); setStarted(true); }
   }, [started, initGame]);
 
   useEffect(() => {
