@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Board } from "@/components/game/Board";
-import { createEmptyBoard, getAllValidMoves, applyMove } from "@/lib/game/engine";
-import type { Board as BoardType, Move } from "@/lib/game/types";
+import { createEmptyBoard, getValidMovesForPiece, applyMove } from "@/lib/game/engine";
+import type { Board as BoardType, Move, Position } from "@/lib/game/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/train")({
@@ -54,38 +54,61 @@ function Train() {
   const [lastMove, setLastMove] = useState<Move | null>(null);
   const [score, setScore] = useState(0);
 
+  const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
+  const [validMoves, setValidMoves] = useState<Move[]>([]);
+
   useEffect(() => {
     setBoard(DRILLS[activeDrill].setup());
     setLastMove(null);
+    setSelectedPiece(null);
+    setValidMoves([]);
   }, [activeDrill]);
 
   const handleSquareClick = (r: number, c: number) => {
-    const validMoves = getAllValidMoves(board, "red");
-    const move = validMoves.find(m => m.to.row === r && m.to.col === c);
-    
-    if (move) {
-      const isCaptureDrill = DRILLS[activeDrill].id === "capture-scan";
-      if (isCaptureDrill && move.captures.length === 0) {
-          toast.error("Incorrect. A capture was mandatory.");
-          return;
+    if (selectedPiece) {
+      const move = validMoves.find((m) => m.to.row === r && m.to.col === c);
+      
+      if (move) {
+        const isCaptureDrill = DRILLS[activeDrill].id === "capture-scan";
+        if (isCaptureDrill && move.captures.length === 0) {
+            toast.error("Incorrect. A capture was mandatory.");
+            setSelectedPiece(null);
+            setValidMoves([]);
+            return;
+        }
+        
+        setBoard(applyMove(board, move));
+        setLastMove(move);
+        setScore(s => s + 10);
+        toast.success("Well played.");
+        setSelectedPiece(null);
+        setValidMoves([]);
+        
+        setTimeout(() => {
+          if (activeDrill < DRILLS.length - 1) {
+              setActiveDrill(activeDrill + 1);
+          } else {
+              toast("Dojo circuit complete!");
+              setActiveDrill(0);
+          }
+        }, 1500);
+        return;
       }
       
-      setBoard(applyMove(board, move));
-      setLastMove(move);
-      setScore(s => s + 10);
-      toast.success("Well played.");
-      
-      setTimeout(() => {
-        if (activeDrill < DRILLS.length - 1) {
-            setActiveDrill(activeDrill + 1);
-        } else {
-            toast("Dojo circuit complete!");
-            setActiveDrill(0);
-        }
-      }, 1500);
+      if (selectedPiece.row === r && selectedPiece.col === c) {
+        setSelectedPiece(null);
+        setValidMoves([]);
+        return;
+      }
+    }
+
+    const piece = board[r][c];
+    if (piece && piece.color === "red") {
+      setSelectedPiece({ row: r, col: c });
+      setValidMoves(getValidMovesForPiece(board, { row: r, col: c }, "red"));
     } else {
-      // Basic selection logic for drills
-      toast.info("Select a red piece and then a valid destination.");
+      setSelectedPiece(null);
+      setValidMoves([]);
     }
   };
 
@@ -99,6 +122,8 @@ function Train() {
           <div className="bg-paper border border-border p-8 flex flex-col items-center">
             <Board 
               board={board} 
+              selectedPiece={selectedPiece}
+              validMoves={validMoves}
               lastMove={lastMove} 
               onSquareClick={handleSquareClick}
             />

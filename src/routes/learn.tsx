@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Board } from "@/components/game/Board";
-import { createEmptyBoard } from "@/lib/game/engine";
+import { createEmptyBoard, getValidMovesForPiece, applyMove } from "@/lib/game/engine";
+import { Board as BoardType, Move, Position } from "@/lib/game/types";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
 import { BookOpen, Shield, Crown, Play, Star } from "lucide-react";
@@ -67,6 +68,51 @@ const LESSONS = [
 
 function Learn() {
   const [active, setActive] = useState<string | null>(null);
+  const [localBoard, setLocalBoard] = useState<BoardType | null>(null);
+  const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
+  const [validMoves, setValidMoves] = useState<Move[]>([]);
+  const [turn, setTurn] = useState<"red" | "black">("red");
+
+  const openLesson = (title: string) => {
+    const lesson = LESSONS.find(l => l.title === title);
+    if (lesson) {
+      setLocalBoard(lesson.board);
+      setActive(title);
+      setSelectedPiece(null);
+      setValidMoves([]);
+      setTurn("red");
+    }
+  };
+
+  const handleSquareClick = (r: number, c: number) => {
+    if (!localBoard) return;
+
+    if (selectedPiece) {
+      const move = validMoves.find(m => m.to.row === r && m.to.col === c);
+      if (move) {
+        const next = applyMove(localBoard, move);
+        setLocalBoard(next);
+        setTurn(turn === "red" ? "black" : "red");
+        setSelectedPiece(null);
+        setValidMoves([]);
+        return;
+      }
+      if (selectedPiece.row === r && selectedPiece.col === c) {
+        setSelectedPiece(null);
+        setValidMoves([]);
+        return;
+      }
+    }
+
+    const piece = localBoard[r][c];
+    if (piece && piece.color === turn) {
+      setSelectedPiece({ row: r, col: c });
+      setValidMoves(getValidMovesForPiece(localBoard, { row: r, col: c }, turn));
+    } else {
+      setSelectedPiece(null);
+      setValidMoves([]);
+    }
+  };
 
   const timelineData = LESSONS.map((l, i) => {
     let icon = BookOpen;
@@ -97,7 +143,10 @@ function Learn() {
             <h1 className="font-display text-5xl md:text-7xl text-ink">Learn checkers, properly.</h1>
           </div>
 
-          <RadialOrbitalTimeline timelineData={timelineData} />
+          <RadialOrbitalTimeline 
+            timelineData={timelineData} 
+            onSelect={(_, title) => openLesson(title)}
+          />
 
         {active && (
           <div className="fixed inset-0 z-50 bg-ink/70 flex items-center justify-center p-4" onClick={() => setActive(null)}>
@@ -115,13 +164,16 @@ function Learn() {
                 </div>
               </div>
               <div className="w-full md:w-[400px] bg-paper p-6 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-border relative">
-                 <div className="absolute top-4 left-4 font-sans text-[9px] uppercase tracking-widest text-gold">Illustrative Position</div>
+                 <div className="absolute top-4 left-4 font-sans text-[9px] uppercase tracking-widest text-gold text-center w-full left-0">Interactive Study Board</div>
                  <Board 
-                  board={LESSONS.find(l => l.title === active)?.board} 
-                  selectedPiece={null} 
-                  validMoves={[]}
+                  board={localBoard || undefined} 
+                  selectedPiece={selectedPiece} 
+                  validMoves={validMoves}
+                  onSquareClick={handleSquareClick}
                  />
-                 <div className="mt-4 font-serif text-[11px] text-ink-muted italic">Non-interactive diagram for this lesson tier.</div>
+                 <div className="mt-4 font-serif text-[11px] text-ink-muted italic text-center">
+                    {turn === "red" ? "Red to move" : "Black to move"} — Drag or click pieces to experiment.
+                 </div>
               </div>
             </div>
           </div>

@@ -17,10 +17,12 @@ interface TimelineItem {
 
 interface RadialOrbitalTimelineProps {
   timelineData: TimelineItem[];
+  onSelect?: (id: number, title: string) => void;
 }
 
 export default function RadialOrbitalTimeline({
   timelineData,
+  onSelect,
 }: RadialOrbitalTimelineProps) {
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const [viewMode, setViewMode] = useState<"orbital">("orbital");
@@ -203,6 +205,13 @@ export default function RadialOrbitalTimeline({
                     </div>
                     <div className="font-display text-xl text-ink mb-2">{item.title}</div>
                     <p className="text-xs font-serif text-ink-muted mb-4 leading-relaxed">{item.content}</p>
+
+                    <button 
+                      onClick={() => onSelect?.(item.id, item.title)}
+                      className="w-full py-2 bg-forest text-primary-foreground text-[10px] uppercase tracking-widest font-sans hover:bg-forest-deep transition mb-4 flex items-center justify-center gap-2"
+                    >
+                      Study Archive <ArrowRight size={12} />
+                    </button>
 
                     <div className="pt-3 border-t border-border">
                        <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-sans text-ink-muted mb-1">

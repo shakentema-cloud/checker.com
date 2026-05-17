@@ -3,6 +3,7 @@ import { Link, useRouter, useLocation, useNavigate } from "@tanstack/react-route
 import { useAuth } from "@/hooks/useAuth";
 import GradientMenu from "@/components/ui/gradient-menu";
 import { Play, Puzzle, BookOpen, Crown, User } from "lucide-react";
+import { FloatingAiAssistant } from "@/components/ui/glowing-ai-chat-assistant";
 
 const NAV = [
   { to: "/play",        label: "Play"     },
@@ -132,6 +133,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </span>
         </div>
       </footer>
+
+      <FloatingAiAssistant />
     </div>
   );
 }

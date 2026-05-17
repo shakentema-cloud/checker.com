@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { store } from "@/lib/storage";
+import { Board } from "@/components/game/Board";
+import { getValidMovesForPiece, applyMove } from "@/lib/game/engine";
+import { Move, Position, Board as BoardType } from "@/lib/game/types";
 
 export const Route = createFileRoute("/puzzles/")({
   head: () => ({ meta: [{ title: "Daily Puzzles — Checker.com" }] }),
@@ -16,6 +19,12 @@ function PuzzlesPage() {
   const [showHint, setShowHint] = useState(false);
   const [feedback, setFeedback] = useState<null | "correct" | "wrong">(null);
 
+  // Local Engine State
+  const [board, setBoard] = useState<BoardType | null>(null);
+  const [currentTurn, setCurrentTurn] = useState<"red" | "black">("red");
+  const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
+  const [validMoves, setValidMoves] = useState<Move[]>([]);
+
   useEffect(() => {
     supabase.from("puzzles").select("*").limit(20).then(({ data }) => {
       if (data?.length) setPuzzles(data);
@@ -24,6 +33,17 @@ function PuzzlesPage() {
   }, []);
 
   const p = puzzles[idx];
+
+  // Load new puzzle state
+  useEffect(() => {
+    if (p) {
+      setBoard(p.board);
+      setCurrentTurn(p.side_to_move || "red");
+      setSelectedPiece(null);
+      setValidMoves([]);
+    }
+  }, [p]);
+
   const submit = (correct: boolean) => {
     if (!p) return;
     const prev = solved[p.id] || { solved: false, attempts: 0, time: 0 };
@@ -31,6 +51,39 @@ function PuzzlesPage() {
     store.setPuzzle(p.id, next);
     setSolved({ ...solved, [p.id]: next });
     setFeedback(correct ? "correct" : "wrong");
+  };
+
+  const handleSquareClick = (r: number, c: number) => {
+    if (!board) return;
+    
+    // If piece is already selected, try to move
+    if (selectedPiece) {
+      const move = validMoves.find((m) => m.to.row === r && m.to.col === c);
+      if (move) {
+        const nextBoard = applyMove(board, move);
+        setBoard(nextBoard);
+        setCurrentTurn(currentTurn === "red" ? "black" : "red");
+        setSelectedPiece(null);
+        setValidMoves([]);
+        return;
+      }
+      // Deselect if clicked same square
+      if (selectedPiece.row === r && selectedPiece.col === c) {
+        setSelectedPiece(null);
+        setValidMoves([]);
+        return;
+      }
+    }
+
+    // Select piece
+    const piece = board[r][c];
+    if (piece && piece.color === currentTurn) {
+      setSelectedPiece({ row: r, col: c });
+      setValidMoves(getValidMovesForPiece(board, { row: r, col: c }, currentTurn));
+    } else {
+      setSelectedPiece(null);
+      setValidMoves([]);
+    }
   };
 
   const streak = Object.values(solved).filter((x: any) => x.solved).length;
@@ -59,20 +112,19 @@ function PuzzlesPage() {
                   </div>
                   <div className="font-sans text-[11px] uppercase tracking-wider text-gold">{p.side_to_move} to move</div>
                 </div>
-                <div className="aspect-square max-w-md mx-auto border border-border bg-paper grid grid-cols-8 grid-rows-8">
-                  {Array.from({ length: 64 }).map((_, i) => {
-                    const r = Math.floor(i / 8), c = i % 8;
-                    const dark = (r + c) % 2 === 1;
-                    const piece = Array.isArray(p.board) ? p.board?.[r]?.[c] : null;
-                    return (
-                      <div key={i} className="flex items-center justify-center" style={{ background: dark ? "var(--board-dark)" : "var(--board-light)" }}>
-                        {piece && (
-                          <div className="w-3/4 aspect-square rounded-full" style={{ background: piece.color === "red" ? "var(--piece-red)" : "var(--piece-black)" }} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                
+                {board ? (
+                  <Board 
+                    board={board}
+                    flipped={p.side_to_move === "black"}
+                    selectedPiece={selectedPiece}
+                    validMoves={validMoves}
+                    onSquareClick={handleSquareClick}
+                  />
+                ) : (
+                  <div className="aspect-square max-w-[640px] mx-auto border border-border bg-paper grid grid-cols-8 grid-rows-8" />
+                )}
+
                 {showHint && p.explanation && (
                   <div className="mt-4 p-3 bg-paper border-l-2 border-gold font-serif text-sm text-ink-muted">{p.explanation}</div>
                 )}
