@@ -19,7 +19,7 @@ Not a game. A platform.
 The difference matters. A game you play once.
 A platform gives you a reason to come back.
 
-Live demo: (Ready for Vercel Deployment)
+Live demo: https://checker-com.vercel.app/
 GitHub: https://github.com/shakentema-cloud/checker.com
 
 ---
