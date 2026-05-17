@@ -99,3 +99,5 @@ That is the niche. That is the moat.
 ---
 
 Built by Temirkhan Shaken, Kazakhstan · 2026
+
+There is a lot of pressure on me right now, as I am taking Cambridge AS & A Level exams (Mathematics 9709, Physics 9702, Computer Science 9618), it is the end of term and the school year, and tomorrow my Final Week begins (final exams in each subject). I am also preparing for my math olympiad — Stemco Global Final. I just wanted to mention it. Thank you!
