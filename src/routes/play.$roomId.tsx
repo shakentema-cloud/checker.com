@@ -13,10 +13,11 @@ export const Route = createFileRoute("/play/$roomId")({
 
 function Room() {
   const { roomId } = Route.useParams();
-  const { user, guest } = useAuth();
+  const { user, localUser: guest } = useAuth();
   const [room, setRoom] = useState<any>(null);
   const [status, setStatus] = useState<"loading" | "waiting" | "playing" | "not-found">("loading");
   const initGame = useGameStore((s) => s.initGame);
+  const setPlayerColor = useGameStore((s) => s.setPlayerColor);
   const state = useGameStore((s) => s.state);
   const [seat, setSeat] = useState<"host" | "guest" | "spectator">("spectator");
 
@@ -39,13 +40,17 @@ function Room() {
         setStatus("waiting");
       } else {
         setRoom(data);
-        if (data.host_user_id === user?.id) setSeat("host");
-        else if (!data.guest_user_id && !data.guest_guest_name) setSeat("guest");
-        else if (data.guest_user_id === user?.id) setSeat("guest");
-        else setSeat("spectator");
+        if (data.host_user_id === user?.id || (data.host_guest_name && data.host_guest_name === guest?.display_name)) {
+          setSeat("host");
+        } else if (data.guest_user_id === user?.id || (data.guest_guest_name && data.guest_guest_name === guest?.display_name)) {
+          setSeat("guest");
+        } else if (!data.guest_user_id && !data.guest_guest_name) {
+          setSeat("guest");
+        } else {
+          setSeat("spectator");
+        }
         setStatus(data.status === "playing" ? "playing" : "waiting");
       }
-      initGame("vs-human-online", 0, "rapid-10", "red");
     })();
 
     const channel = supabase.channel(`room:${roomId}`)
@@ -60,7 +65,17 @@ function Room() {
       }).subscribe();
 
     return () => { mounted = false; supabase.removeChannel(channel); };
-  }, [roomId, initGame, user, guest]);
+  }, [roomId, user, guest]);
+
+  // Handle color enforcement
+  useEffect(() => {
+    if (seat === "host") setPlayerColor("red");
+    else if (seat === "guest") setPlayerColor("black");
+    // Only init if we are hosting, the guests will receive state via Supabase realtime
+    if (seat === "host" && status === "loading") {
+      initGame("vs-human-online", 0, "rapid-10", "red");
+    }
+  }, [seat, setPlayerColor, initGame, status]);
 
   // Sync our moves to the server
   useEffect(() => {
@@ -104,7 +119,7 @@ function Room() {
               {status === "loading" ? "Loading…" : status === "waiting" ? "Awaiting opponent" : "Match in progress"}
             </div>
           </div>
-          <Board />
+          <Board flipped={seat === "guest"} />
           {status === "waiting" && seat === "host" && (
             <div className="mt-4 dossier p-4">
               <div className="font-sans text-[11px] uppercase tracking-wider text-gold mb-2">Share this link</div>

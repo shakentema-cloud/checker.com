@@ -1,134 +1,135 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { motion } from "framer-motion";
+import { ScrollText, Trophy, Users } from "lucide-react";
+import React from "react";
+
 import { AppShell } from "@/components/layout/AppShell";
+import { HeroGeometric } from "@/components/ui/shape-landing-hero";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import { ShuffleCards } from "@/components/ui/testimonial-cards";
+import { MetalButton, LiquidButton } from "@/components/ui/buttons";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Checker.com — Private Grandmaster Checkers Club" },
       { name: "description", content: "A serious archive-grade checkers platform. Play, study, analyze. Forest green & antique gold. Built for tacticians." },
-      { property: "og:title", content: "Checker.com — Private Grandmaster Checkers Club" },
-      { property: "og:description", content: "Premium competitive checkers. AI opponents, daily tactics, friend matches, study library." },
     ],
   }),
   component: Index,
 });
 
-function FallingPieces() {
-  const pieces = Array.from({ length: 18 }).map((_, i) => ({
-    i,
-    left: Math.random() * 100,
-    size: 18 + Math.random() * 28,
-    delay: Math.random() * 12,
-    duration: 14 + Math.random() * 10,
-    isRed: Math.random() > 0.5,
-  }));
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
-      {pieces.map((p) => (
-        <div
-          key={p.i}
-          className="falling-piece"
-          style={{
-            left: `${p.left}%`,
-            width: p.size,
-            height: p.size,
-            animationDelay: `${p.delay}s`,
-            animationDuration: `${p.duration}s`,
-            background: p.isRed
-              ? "radial-gradient(circle at 30% 30%, oklch(0.55 0.14 28), var(--piece-red))"
-              : "radial-gradient(circle at 30% 30%, oklch(0.32 0.025 145), var(--piece-black))",
-            boxShadow: "0 4px 12px oklch(0 0 0 / 0.3)",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+const testimonials = [
+  {
+    id: 11,
+    testimonial: "I feel like I've learned as much from this archive as I did completing my masters. It's the first thing I read every morning.",
+    author: "Jenn F. - Master Tactician"
+  },
+  {
+    id: 32,
+    testimonial: "My opponent thinks I know what I'm doing. Honestly, I just read the backward-capture analysis.",
+    author: "Adrian Y. - Regional Champion"
+  },
+  {
+    id: 43,
+    testimonial: "Cannot believe this is a public club for now. If the Archive was $500 a month, it would be worth every penny.",
+    author: "Devin R. - Grandmaster"
+  }
+];
 
 function Index() {
+  const router = useRouter();
+
   return (
     <AppShell>
-      <section 
-        className="relative bg-parchment overflow-hidden border-b border-border"
-        style={{
-          backgroundImage: "url('/background.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center"
-        }}
-      >
-        <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32 grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="font-sans text-[11px] uppercase tracking-[0.28em] text-gold mb-4">
-              Est. — Almaty · Private Members Edition
-            </div>
-            <h1 className="font-display text-5xl md:text-7xl leading-[0.95] text-ink mb-6">
-              A quiet archive<br />for serious<br /><em className="text-forest not-italic">checkers.</em>
-            </h1>
-            <div className="gold-rule w-32 mb-6" />
-            <p className="font-serif text-lg text-ink-muted max-w-md mb-8 leading-relaxed">
-              Twelve men. Sixty-four squares. A thousand variations. Checker.com is a study library, match ledger, and tactical archive for players who treat draughts as the strategy game it is.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                to="/play/ai"
-                className="px-6 py-3 bg-forest text-primary-foreground font-sans text-xs uppercase tracking-[0.2em] hover:bg-forest-deep transition"
-              >
-                Open the Board
-              </Link>
-              <Link
-                to="/puzzles"
-                className="px-6 py-3 border border-forest text-forest font-sans text-xs uppercase tracking-[0.2em] hover:bg-forest hover:text-primary-foreground transition"
-              >
-                Daily Tactic
-              </Link>
-            </div>
-          </div>
+      {/* 1. Hero Geometric */}
+      <HeroGeometric 
+         badge="Private Club"
+         title1="The Ancient"
+         title2="Mastery."
+      />
 
-          <div className="relative">
-            <div className="dossier p-6">
-              <div className="dossier-header -mx-6 -mt-6 mb-5">Match Ledger — Today</div>
-              <ul className="font-mono text-[13px] space-y-2">
-                <li className="flex justify-between border-b border-dashed border-border pb-2">
-                  <span>GMSerikov vs AzaTactical</span><span className="text-forest">1–0</span>
-                </li>
-                <li className="flex justify-between border-b border-dashed border-border pb-2">
-                  <span>NurbolatK vs BlitzAibek</span><span className="text-forest">1–0</span>
-                </li>
-                <li className="flex justify-between border-b border-dashed border-border pb-2">
-                  <span>OldMasterT vs DiKhan</span><span className="text-ink-muted">½–½</span>
-                </li>
-                <li className="flex justify-between border-b border-dashed border-border pb-2">
-                  <span>PuzzleQueen — Daily #214</span><span className="text-gold">solved · 9s</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>SteppeKnight vs IronDaria</span><span className="text-oxblood">0–1</span>
-                </li>
-              </ul>
-              <div className="gold-rule my-5" />
-              <Link to="/leaderboard" className="font-sans text-[11px] uppercase tracking-[0.2em] text-gold hover:text-forest">
-                Read the full archive →
-              </Link>
+      <div className="flex justify-center -mt-24 mb-32 z-50 relative pointer-events-auto gap-6 flex-wrap">
+         <MetalButton variant="gold" onClick={() => router.navigate({ to: "/play/ai" })}>
+           Enter the Archive
+         </MetalButton>
+         <LiquidButton size="xl" onClick={() => router.navigate({ to: "/learn" })}>
+           Browse the Library
+         </LiquidButton>
+      </div>
+
+      {/* 2. Container Scroll applied to the game board/ledger */}
+      <div className="bg-ink rounded-t-[4rem] text-parchment overflow-hidden overflow-x-hidden pt-12 pb-24 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] border-t border-gold/20 relative z-10 w-full relative">
+        <ContainerScroll
+          titleComponent={
+            <>
+              <h2 className="text-2xl font-sans uppercase tracking-[0.2em] text-gold/70">
+                Official Ledger
+              </h2>
+              <span className="text-4xl md:text-6xl font-display mt-2 leading-none block text-parchment">
+                Current Open Sessions
+              </span>
+            </>
+          }
+        >
+          <div className="relative aspect-[16/9] w-full h-full bg-paper">
+            <img 
+              src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1920&q=80" 
+              className="w-full h-full object-cover opacity-80"
+              alt="Ancient checkers set"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent pointer-events-none" />
+            <div className="absolute bottom-6 left-6 right-6 md:bottom-12 md:left-12 text-left pointer-events-none">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 font-mono text-[9px] md:text-[11px] uppercase tracking-widest text-gold/60">
+                  <div>
+                    <div className="text-parchment mb-1">Dossier #412</div>
+                    <div>Nur-Sultan vs Almaty</div>
+                  </div>
+                  <div>
+                    <div className="text-parchment mb-1">Archive #88</div>
+                    <div>Sicilian Defense Study</div>
+                  </div>
+                  <div>
+                    <div className="text-parchment mb-1">Ranked Match</div>
+                    <div>Grandmaster Tier</div>
+                  </div>
+                  <div>
+                    <div className="text-parchment mb-1">Status</div>
+                    <div className="text-forest">Online / Active</div>
+                  </div>
+                </div>
             </div>
           </div>
+        </ContainerScroll>
+      </div>
+
+      {/* 3. Shuffle Cards (Testimonials) */}
+      <section className="bg-background py-32 border-t border-border flex flex-col items-center overflow-hidden">
+        <div className="mb-16 text-center max-w-xl mx-auto px-4 z-10">
+           <h2 className="font-display text-5xl text-ink">Words from the Hierarchy</h2>
+           <p className="font-serif italic text-ink-muted mt-4">Those who have mastered the board leave behind their wisdom.</p>
+        </div>
+        <ShuffleCards testimonials={testimonials} />
+      </section>
+
+      {/* Features */}
+      <section className="bg-paper py-32 border-t border-ledger">
+        <div className="mx-auto max-w-7xl px-6 grid md:grid-cols-3 gap-12">
+           {[
+             { Icon: ScrollText, t: "Official Archives", d: "Store and replay every match with deep accuracy metrics and move-by-move notations.", l: "/dashboard" },
+             { Icon: Trophy, t: "Grandmaster AI", d: "Face tiered AI engines from Level 1 (Apprentice) to Level 5 (Grandmaster Alpha-Beta).", l: "/play/ai" },
+             { Icon: Users, t: "Private Rooms", d: "Invite friends to private matches with real-time broadcasting and side-pot challenges.", l: "/play/friend" },
+           ].map((c, i) => (
+             <Link key={i} to={c.l} className="dossier bg-card p-10 group hover:border-gold transition-colors block">
+                <c.Icon className="w-10 h-10 text-gold mb-8 group-hover:scale-110 transition-transform" />
+                <h3 className="font-display text-3xl text-ink mb-4">{c.t}</h3>
+                <p className="font-serif text-ink-muted leading-relaxed mb-6">{c.d}</p>
+                <div className="font-sans text-[10px] uppercase tracking-[0.2em] text-gold">Access Department →</div>
+             </Link>
+           ))}
         </div>
       </section>
 
-      <section className="bg-paper border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 py-20 grid md:grid-cols-3 gap-10">
-          {[
-            { t: "AI Opponents", d: "Five tiers from Apprentice to Grandmaster. Alpha-beta search, near-optimal at depth 8.", l: "/play/ai", lt: "Play AI →" },
-            { t: "Daily Tactics", d: "Ten seeded tactical positions. Forced captures, multi-jumps, promotion races, king traps.", l: "/puzzles", lt: "Solve today →" },
-            { t: "Friend Matches", d: "Generate a private room code. Share. Play. Coach reviews after the final move.", l: "/play/friend", lt: "Open a room →" },
-          ].map((c) => (
-            <div key={c.t} className="dossier p-6">
-              <div className="font-sans text-[11px] uppercase tracking-[0.2em] text-gold mb-3">Chapter</div>
-              <h3 className="font-display text-2xl text-ink mb-3">{c.t}</h3>
-              <p className="font-serif text-ink-muted leading-relaxed mb-4">{c.d}</p>
-              <Link to={c.l} className="font-sans text-xs uppercase tracking-[0.2em] text-forest hover:text-gold">{c.lt}</Link>
-            </div>
-          ))}
-        </div>
-      </section>
     </AppShell>
   );
 }

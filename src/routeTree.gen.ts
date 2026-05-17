@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrainRouteImport } from './routes/train'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProRouteImport } from './routes/pro'
@@ -28,6 +29,11 @@ import { Route as PlayFriendRouteImport } from './routes/play.friend'
 import { Route as PlayAiRouteImport } from './routes/play.ai'
 import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 
+const TrainRoute = TrainRouteImport.update({
+  id: '/train',
+  path: '/train',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/pro': typeof ProRoute
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRoute
+  '/train': typeof TrainRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
   '/play/friend': typeof PlayFriendRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/pro': typeof ProRoute
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRoute
+  '/train': typeof TrainRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
   '/play/friend': typeof PlayFriendRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/pro': typeof ProRoute
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRoute
+  '/train': typeof TrainRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
   '/play/friend': typeof PlayFriendRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/pro'
     | '/register'
     | '/settings'
+    | '/train'
     | '/play/$roomId'
     | '/play/ai'
     | '/play/friend'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/pro'
     | '/register'
     | '/settings'
+    | '/train'
     | '/play/$roomId'
     | '/play/ai'
     | '/play/friend'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/pro'
     | '/register'
     | '/settings'
+    | '/train'
     | '/play/$roomId'
     | '/play/ai'
     | '/play/friend'
@@ -255,6 +267,7 @@ export interface RootRouteChildren {
   ProRoute: typeof ProRoute
   RegisterRoute: typeof RegisterRoute
   SettingsRoute: typeof SettingsRoute
+  TrainRoute: typeof TrainRoute
   PlayRoomIdRoute: typeof PlayRoomIdRoute
   PlayAiRoute: typeof PlayAiRoute
   PlayFriendRoute: typeof PlayFriendRoute
@@ -266,6 +279,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/train': {
+      id: '/train'
+      path: '/train'
+      fullPath: '/train'
+      preLoaderRoute: typeof TrainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -407,6 +427,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProRoute: ProRoute,
   RegisterRoute: RegisterRoute,
   SettingsRoute: SettingsRoute,
+  TrainRoute: TrainRoute,
   PlayRoomIdRoute: PlayRoomIdRoute,
   PlayAiRoute: PlayAiRoute,
   PlayFriendRoute: PlayFriendRoute,

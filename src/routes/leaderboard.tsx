@@ -28,7 +28,18 @@ function Leaderboard() {
     if (scope === "Country") q = q.eq("country", "Kazakhstan");
 
     q.then(({ data }) => {
-      setRows(data ?? []);
+      if (data && data.length > 0) {
+        setRows(data);
+      } else {
+        // Fallback for demo mode
+        setRows([
+          { id: 1, username: "GM_Bakiev", city: "Almaty", score: 2840, wins: 142, losses: 12, streak: 8 },
+          { id: 2, username: "SteppeLion", city: "Nur-Sultan", score: 2715, wins: 98, losses: 14, streak: 3 },
+          { id: 3, username: "OldTactic", city: "Atyrau", score: 2690, wins: 110, losses: 26, streak: 0 },
+          { id: 4, username: "BlitzDaria", city: "Almaty", score: 2450, wins: 88, losses: 22, streak: 5 },
+          { id: 5, username: "SilentMove", city: "Shymkent", score: 2120, wins: 45, losses: 10, streak: 1 },
+        ]);
+      }
     });
   }, [scope, mode]);
 

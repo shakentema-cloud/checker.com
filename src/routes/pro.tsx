@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
+import { updateGuest } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { LampContainer } from "@/components/ui/lamp";
+import { MetalButton } from "@/components/ui/buttons";
+import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/pro")({
   head: () => ({ meta: [{ title: "Pro — Checker.com" }] }),
@@ -16,12 +21,21 @@ function Pro() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl px-6 py-12">
-        <div className="font-sans text-[11px] uppercase tracking-[0.25em] text-gold mb-2">Membership</div>
-        <h1 className="font-display text-5xl text-ink mb-3">Checker.com Pro</h1>
-        <p className="font-serif text-lg text-ink-muted mb-10 max-w-xl">For players who treat the board as a discipline. Coach without limits, archive without bounds.</p>
+      <LampContainer className="pt-20">
+        <motion.div 
+           initial={{ opacity: 0.5, y: 100 }}
+           whileInView={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
+           className="text-center"
+        >
+          <div className="font-sans text-[11px] uppercase tracking-[0.25em] text-gold mb-2">Membership</div>
+          <h1 className="font-display text-5xl md:text-7xl text-ink mb-6">Checker.com <span className="text-gold">Pro</span></h1>
+          <p className="font-serif text-lg md:text-xl text-ink-muted mb-10 max-w-2xl mx-auto px-4">For players who treat the board as a discipline. Coach without limits, archive without bounds.</p>
+        </motion.div>
+      </LampContainer>
 
-        <div className="grid md:grid-cols-2 gap-6">
+      <div className="mx-auto max-w-5xl px-6 pb-24 -mt-20 relative z-20">
+        <div className="grid md:grid-cols-2 gap-6 relative">
           <div className="dossier p-7">
             <div className="font-sans text-[11px] uppercase tracking-[0.2em] text-ink-muted mb-2">Free</div>
             <div className="font-display text-3xl text-ink mb-4">$0</div>
@@ -42,7 +56,11 @@ function Pro() {
             <ul className="space-y-2 font-serif text-sm text-ink-muted mb-5">
               {PRO.map(p => <li key={p} className="flex gap-2"><span className="text-gold">★</span>{p}</li>)}
             </ul>
-            <button onClick={() => setShowCheckout(true)} className="w-full px-5 py-3 bg-forest text-primary-foreground text-xs uppercase tracking-[0.18em] font-sans hover:bg-forest-deep">Upgrade to Pro</button>
+            <div className="mt-8 flex justify-center">
+              <MetalButton variant="gold" onClick={() => setShowCheckout(true)} className="w-full">
+                Upgrade to Pro
+              </MetalButton>
+            </div>
           </div>
         </div>
 
@@ -57,7 +75,16 @@ function Pro() {
                   <input placeholder="MM/YY" className="bg-paper border border-border px-3 py-2 font-mono text-sm" />
                   <input placeholder="CVC" className="bg-paper border border-border px-3 py-2 font-mono text-sm" />
                 </div>
-                <button onClick={() => { alert("Demo checkout — connect Stripe for live payments"); setShowCheckout(false); }} className="w-full px-4 py-2 bg-forest text-primary-foreground text-xs uppercase tracking-wider font-sans">Pay {plan === "monthly" ? "$4.99" : "$39.99"}</button>
+                <button 
+                  onClick={() => { 
+                    updateGuest({ is_pro: true });
+                    toast.success("Welcome to the Grandmaster Club. Pro activated.");
+                    setShowCheckout(false); 
+                  }} 
+                  className="w-full px-4 py-2 bg-forest text-primary-foreground text-xs uppercase tracking-wider font-sans"
+                >
+                  Approve Mock Payment
+                </button>
               </div>
             </div>
           </div>

@@ -1,19 +1,35 @@
 import { useGameStore } from "@/store/gameStore";
 import { PieceView } from "./Piece";
 import { cn } from "@/lib/utils";
+import type { Board as BoardType, Position, Move } from "@/lib/game/types";
 
 interface BoardProps {
   flipped?: boolean;
+  board?: BoardType;
+  selectedPiece?: Position | null;
+  validMoves?: Move[];
+  lastMove?: Move | null;
+  onSquareClick?: (r: number, col: number) => void;
 }
 
-export function Board({ flipped = false }: BoardProps) {
-  const state = useGameStore((s) => s.state);
-  const selectPiece = useGameStore((s) => s.selectPiece);
+export function Board({ 
+  flipped = false, 
+  board, 
+  selectedPiece, 
+  validMoves, 
+  lastMove: propLastMove,
+  onSquareClick
+}: BoardProps) {
+  const storeState = useGameStore((s) => s.state);
+  const storeSelectPiece = useGameStore((s) => s.selectPiece);
 
+  const displayBoard = board || storeState.board;
+  const displaySelected = selectedPiece !== undefined ? selectedPiece : storeState.selectedPiece;
+  const displayValidMoves = validMoves || storeState.validMoves;
+  const lastMove = propLastMove !== undefined ? propLastMove : storeState.moveHistory[storeState.moveHistory.length - 1]?.move;
+  const handleClick = onSquareClick || storeSelectPiece;
   const rows = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
   const cols = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
-
-  const lastMove = state.moveHistory[state.moveHistory.length - 1]?.move;
 
   return (
     <div
@@ -24,10 +40,10 @@ export function Board({ flipped = false }: BoardProps) {
         {rows.map((r) =>
           cols.map((c) => {
             const isDark = (r + c) % 2 === 1;
-            const piece = state.board[r][c];
+            const piece = displayBoard[r][c];
             const isSelected =
-              state.selectedPiece?.row === r && state.selectedPiece?.col === c;
-            const validMove = state.validMoves.find(
+              displaySelected?.row === r && displaySelected?.col === c;
+            const validMove = displayValidMoves.find(
               (m) => m.to.row === r && m.to.col === c,
             );
             const isCaptureTarget = validMove && validMove.captures.length > 0;
@@ -38,7 +54,7 @@ export function Board({ flipped = false }: BoardProps) {
             return (
               <button
                 key={`${r}-${c}`}
-                onClick={() => selectPiece(r, c)}
+                onClick={() => handleClick(r, c)}
                 className={cn(
                   "relative flex items-center justify-center transition-colors",
                   "outline-none focus-visible:ring-2 focus-visible:ring-gold-bright focus-visible:z-10",

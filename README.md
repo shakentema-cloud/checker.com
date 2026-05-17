@@ -34,11 +34,14 @@ Kings step the full length of the diagonal. Zero shortcuts. If the rule exists, 
 They click it and drop directly into the match. No sign-up walls. No tedious handshakes. 
 Moves sync instantly over Supabase Realtime channels. A frictionless competitive loop.
 
-**AI Coach Dossiers** - after every game, the coach tells you what went wrong 
+**AI Coach Dossiers & Per-Move Feedback** - after every game, the coach tells you what went wrong 
 and why. Not engine output. Plain language. 
 "You left your back row open on move 8. Here is the pattern." 
-Click any past session in your Dashboard, and a cinematic review panel opens. 
-Summary. Key Moments. Training Plan. Nobody else has this for checkers. Not one platform.
+Click any past session in your Dashboard, and a cinematic review panel opens with:
+- **Move-by-Move AI Heuristic Feedback** ("Brilliant because...", "Poor because...")
+- Summary & Key Moments
+- Training Plan tailored to your mistakes
+Nobody else has this for checkers. Not one platform.
 
 **AI opponent with 5 difficulty tiers** - from Apprentice to Grandmaster. 
 Built on minimax with alpha-beta pruning. The hard level actually thinks.
@@ -80,8 +83,9 @@ I built the product.
 - **React + Vite SPA** (Say goodbye to SSR limits, perfectly optimized for edge caching)
 - **TanStack Router** for flawless client-side routing
 - **Zustand** for complex board state management
-- **Supabase** - Auth, Database, and Realtime WebSocket multiplayer syncing
+- **Supabase** - Auth, Database, and Realtime WebSocket multiplayer syncing (Secure Host/Guest control separation)
 - **Minimax + alpha-beta pruning** - Embedded AI engine
+- **Framer Motion + 21st Magic UI** - Next-generation responsive UI, particle effects, and layout animations
 - **Vercel** - Deployment (fully compatible routing rewrites)
 
 ---

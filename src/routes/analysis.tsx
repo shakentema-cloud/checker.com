@@ -2,6 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { store } from "@/lib/storage";
+import { Board } from "@/components/game/Board";
+import { getHistoryFromNotation } from "@/lib/game/engine";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/analysis")({
   head: () => ({ meta: [{ title: "Game Analysis — Checker.com" }] }),
@@ -13,47 +16,88 @@ function Analysis() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = games.find((g) => g.id === selectedId);
 
+  // Replay State
+  const [step, setStep] = useState(0);
+  const history = selected ? getHistoryFromNotation(selected.notation) : [];
+  const coach = selected ? store.getCoachForGame(selected.id) : null;
+  const currentFeedback = coach?.moveAnalysis?.find((m) => m.step === step);
+
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl px-6 py-12">
+      <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="font-sans text-[11px] uppercase tracking-[0.25em] text-gold mb-2">Match Archive</div>
         <h1 className="font-display text-4xl text-ink mb-6">Game Review</h1>
         {selected ? (
-          <div className="dossier grid md:grid-cols-[1fr_300px]">
-            <div className="p-8 border-r border-border flex flex-col">
-              <div className="flex justify-between items-center mb-8">
+          <div className="dossier grid lg:grid-cols-[1fr_360px]">
+            <div className="p-6 border-r border-border flex flex-col">
+              <div className="flex justify-between items-center mb-6">
                 <div>
-                  <div className="font-sans text-[10px] uppercase tracking-widest text-gold mb-2">{selected.mode} • {new Date(selected.createdAt).toLocaleDateString()}</div>
-                  <div className="font-display text-4xl">vs {selected.opponent}</div>
+                  <div className="font-sans text-[10px] uppercase tracking-widest text-gold mb-1">{selected.mode} • {new Date(selected.createdAt).toLocaleDateString()}</div>
+                  <div className="font-display text-3xl">vs {selected.opponent}</div>
                 </div>
                 <button onClick={() => setSelectedId(null)} className="text-[11px] uppercase tracking-wider font-sans border border-border px-3 py-1.5 hover:border-forest text-ink-muted hover:text-forest transition">← Back</button>
               </div>
-              <div className="flex-1 bg-paper border border-border flex items-center justify-center min-h-[400px] relative overflow-hidden group">
-                <div className="absolute inset-0 bg-[url('/background.png')] bg-cover bg-center opacity-10 mix-blend-overlay group-hover:opacity-20 transition duration-1000" />
-                <div className="text-center relative z-10 p-6">
-                  <div className="text-5xl mb-4 opacity-50">♚</div>
-                  <p className="font-serif text-ink-muted text-sm max-w-xs mx-auto leading-relaxed">Engine reconstruction of this notation sequence is pending analysis.</p>
+              
+              <div className="flex-1 bg-paper border border-border p-4 relative overflow-hidden flex flex-col items-center">
+                <Board 
+                  board={history[step]?.board} 
+                  lastMove={history[step]?.move} 
+                  selectedPiece={null} 
+                  validMoves={[]}
+                />
+                
+                <div className="mt-6 flex items-center gap-4">
+                  <button onClick={() => setStep(0)} className="p-2 border border-border rounded hover:border-forest" title="To Start">⇤</button>
+                  <button onClick={() => setStep(Math.max(0, step - 1))} className="px-6 py-2 bg-paper border border-border text-xs uppercase font-sans tracking-widest hover:border-forest">Prev</button>
+                  <div className="font-mono text-sm px-4">{step} / {history.length - 1}</div>
+                  <button onClick={() => setStep(Math.min(history.length - 1, step + 1))} className="px-6 py-2 bg-forest text-primary-foreground text-xs uppercase font-sans tracking-widest hover:bg-forest-deep">Next</button>
+                  <button onClick={() => setStep(history.length - 1)} className="p-2 border border-border rounded hover:border-forest" title="To End">⇥</button>
+                </div>
+                
+                <div className="mt-8 w-full p-4 border border-border bg-paper shadow-inner relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: currentFeedback ? (currentFeedback.quality === "brilliant" || currentFeedback.quality === "excellent" || currentFeedback.quality === "great" ? "var(--forest)" : currentFeedback.quality === "blunder" || currentFeedback.quality === "mistake" ? "var(--oxblood)" : "var(--gold)") : "transparent" }} />
+                  <div className="font-sans text-[10px] uppercase tracking-widest text-gold mb-2">AI Coach Insight</div>
+                  <p className="font-serif text-sm text-ink-muted">
+                    {step === 0 ? "Analysis prepared. Navigate forward to view move-by-move feedback." : currentFeedback ? currentFeedback.text : "No feedback for this move."}
+                  </p>
                 </div>
               </div>
             </div>
+            
             <div className="flex flex-col bg-paper/30">
-              <div className="dossier-header border-b-0 border-l border-t-0 border-r-0">Match Stats</div>
+              <div className="dossier-header border-b border-border">Match Ledger</div>
               <div className="grid grid-cols-2 gap-px bg-border border-b border-border">
-                <div className="bg-paper p-4"><div className="font-sans text-[10px] uppercase tracking-wider text-ink-muted mb-1">Result</div><div className={`font-display text-2xl ${selected.result === "win" ? "text-forest" : "text-oxblood"}`}>{selected.result}</div></div>
-                <div className="bg-paper p-4"><div className="font-sans text-[10px] uppercase tracking-wider text-ink-muted mb-1">Accuracy</div><div className="font-display text-2xl text-gold">{selected.accuracy.toFixed(0)}%</div></div>
+                <div className="bg-paper p-4">
+                  <div className="font-sans text-[10px] uppercase tracking-wider text-ink-muted mb-1">Result</div>
+                  <div className={`font-display text-2xl ${selected.result === "win" ? "text-forest" : selected.result === "loss" ? "text-oxblood" : "text-ink-muted"}`}>{selected.result}</div>
+                </div>
+                <div className="bg-paper p-4">
+                  <div className="font-sans text-[10px] uppercase tracking-wider text-ink-muted mb-1">Accuracy</div>
+                  <div className="font-display text-2xl text-gold">{selected.accuracy.toFixed(0)}%</div>
+                </div>
               </div>
-              <div className="p-4 flex-1 overflow-y-auto max-h-[500px]">
-                <div className="font-sans text-[11px] uppercase tracking-widest text-gold mb-4">Official Notation</div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-sm">
-                  {Array.from({ length: Math.ceil(selected.notation.length / 2) }).map((_, i) => (
-                    <div key={i} className="col-span-2 grid grid-cols-[30px_1fr_1fr] border-b border-dashed border-border/50 pb-2">
-                       <span className="text-ink-muted text-xs pt-0.5">{i + 1}.</span>
-                       <span className="text-ink">{selected.notation[i * 2] || "—"}</span>
-                       <span className="text-ink">{selected.notation[i * 2 + 1] || "—"}</span>
+              <div className="p-4 flex-1 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[12px]">
+                  {Array.from({ length: Math.ceil((history.length - 1) / 2) }).map((_, i) => (
+                    <div key={i} className="col-span-2 grid grid-cols-[30px_1fr_1fr] group">
+                       <span className="text-ink-muted text-[10px] pt-1">{i + 1}.</span>
+                       <button 
+                        onClick={() => setStep(i * 2 + 1)}
+                        className={cn("text-left px-2 py-1 hover:bg-gold/10 rounded", step === i * 2 + 1 && "bg-gold/20 font-bold")}
+                       >
+                        {selected.notation[i * 2] || ""}
+                       </button>
+                       <button 
+                        onClick={() => setStep(i * 2 + 2)}
+                        disabled={!selected.notation[i * 2 + 1]}
+                        className={cn("text-left px-2 py-1 hover:bg-gold/10 rounded", step === i * 2 + 2 && "bg-gold/20 font-bold")}
+                       >
+                        {selected.notation[i * 2 + 1] || "—"}
+                       </button>
                     </div>
                   ))}
-                  {selected.notation.length === 0 && <div className="col-span-2 text-ink-muted italic font-serif">No moves recorded in this match.</div>}
                 </div>
+                {selected.notation.length === 0 && <div className="text-ink-muted italic font-serif p-4 text-center">Empty record.</div>}
               </div>
             </div>
           </div>
