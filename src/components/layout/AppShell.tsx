@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
     if (!isPublic && !isAuthed) {
       // Save intended URL for post-login redirect
-      sessionStorage.setItem("checker_intendedUrl", path + (location.search || ""));
+      sessionStorage.setItem("checker_intendedUrl", path + window.location.search);
       router.navigate({ to: "/login", replace: true });
     }
   }, [isAuthed, loading, location.pathname, location.search, router]);
