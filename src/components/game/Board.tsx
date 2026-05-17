@@ -1,0 +1,95 @@
+import { useGameStore } from "@/store/gameStore";
+import { PieceView } from "./Piece";
+import { cn } from "@/lib/utils";
+
+interface BoardProps {
+  flipped?: boolean;
+}
+
+export function Board({ flipped = false }: BoardProps) {
+  const state = useGameStore((s) => s.state);
+  const selectPiece = useGameStore((s) => s.selectPiece);
+
+  const rows = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
+  const cols = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
+
+  const lastMove = state.moveHistory[state.moveHistory.length - 1]?.move;
+
+  return (
+    <div
+      className="relative w-full aspect-square max-w-[640px] mx-auto rounded-md overflow-hidden border border-ledger shadow-[0_8px_32px_oklch(0_0_0/0.25)]"
+      style={{ background: "var(--forest-deep)" }}
+    >
+      <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
+        {rows.map((r) =>
+          cols.map((c) => {
+            const isDark = (r + c) % 2 === 1;
+            const piece = state.board[r][c];
+            const isSelected =
+              state.selectedPiece?.row === r && state.selectedPiece?.col === c;
+            const validMove = state.validMoves.find(
+              (m) => m.to.row === r && m.to.col === c,
+            );
+            const isCaptureTarget = validMove && validMove.captures.length > 0;
+            const isLastMove =
+              lastMove &&
+              ((lastMove.from.row === r && lastMove.from.col === c) ||
+                (lastMove.to.row === r && lastMove.to.col === c));
+            return (
+              <button
+                key={`${r}-${c}`}
+                onClick={() => selectPiece(r, c)}
+                className={cn(
+                  "relative flex items-center justify-center transition-colors",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-gold-bright focus-visible:z-10",
+                )}
+                style={{
+                  background: isDark ? "var(--board-dark)" : "var(--board-light)",
+                }}
+              >
+                {/* coordinate labels */}
+                {c === (flipped ? 7 : 0) && (
+                  <span
+                    className="absolute top-0.5 left-1 text-[10px] font-mono opacity-60"
+                    style={{ color: isDark ? "var(--board-light)" : "var(--board-dark)" }}
+                  >
+                    {8 - r}
+                  </span>
+                )}
+                {r === (flipped ? 0 : 7) && (
+                  <span
+                    className="absolute bottom-0.5 right-1 text-[10px] font-mono opacity-60"
+                    style={{ color: isDark ? "var(--board-light)" : "var(--board-dark)" }}
+                  >
+                    {String.fromCharCode(97 + c)}
+                  </span>
+                )}
+
+                {isLastMove && (
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: "var(--board-lastmove)" }}
+                  />
+                )}
+                {isSelected && (
+                  <div className="absolute inset-0 animate-square-pulse" />
+                )}
+                {validMove && !isCaptureTarget && (
+                  <div className="absolute w-1/3 h-1/3 rounded-full"
+                       style={{ background: "var(--gold-bright)", opacity: 0.55 }} />
+                )}
+                {isCaptureTarget && (
+                  <div
+                    className="absolute inset-1 rounded-md border-2"
+                    style={{ borderColor: "var(--board-capture)" }}
+                  />
+                )}
+                {piece && <PieceView piece={piece} selected={isSelected} />}
+              </button>
+            );
+          }),
+        )}
+      </div>
+    </div>
+  );
+}
