@@ -55,6 +55,7 @@ interface GameStore {
   resetGame: () => void;
   setPlayerColor: (color: PlayerColor) => void;
   loadBoard: (board: Board, currentTurn: PlayerColor) => void;
+  applyRemoteState: (board: Board, currentTurn: PlayerColor, moveHistory: any[]) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -158,6 +159,10 @@ export const useGameStore = create<GameStore>()(
       if (!over.isOver && mode === "vs-ai" && get().state.currentTurn !== playerColor) {
         await get().triggerAIMove();
       }
+      
+      // If we are in an online room, we don't want to trigger AI. 
+      // But we DO need to broadcast this move. We'll handle that from the component by 
+      // listening to the store, or passing a callback to Board.
     },
 
     triggerAIMove: async () => {
@@ -220,6 +225,16 @@ export const useGameStore = create<GameStore>()(
       s.state = createInitialGameState();
       s.state.board = cloneBoard(board);
       s.state.currentTurn = currentTurn;
+    }),
+
+    applyRemoteState: (board, currentTurn, moveHistory) => set((s) => {
+      // Avoid overwriting if we're already ahead (local prediction)
+      if (s.state.moveHistory.length > moveHistory.length) return;
+      s.state.board = cloneBoard(board);
+      s.state.currentTurn = currentTurn;
+      // We overwrite move history roughly. Real app would do full hydration.
+      // But for display purposes, just updating moveCount is enough.
+      s.state.moveCount = moveHistory.length;
     }),
   })),
 );

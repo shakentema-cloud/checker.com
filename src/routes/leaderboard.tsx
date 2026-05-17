@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,17 +12,36 @@ const SCOPES = ["Global", "Country", "City", "Friends"] as const;
 const MODES = ["blitz", "rapid", "daily", "puzzle", "rush"] as const;
 
 function Leaderboard() {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<any[]>([]);
   const [scope, setScope] = useState<typeof SCOPES[number]>("Global");
   const [mode, setMode] = useState<typeof MODES[number]>("rapid");
 
   useEffect(() => {
-    supabase.from("leaderboard_entries").select("*").order("rating", { ascending: false }).limit(50).then(({ data }) => {
+    let q = supabase.from("leaderboard_entries")
+      .select("*")
+      .eq("category", mode)
+      .order("score", { ascending: false }) // use score
+      .limit(50);
+      
+    if (scope === "City") q = q.eq("city", "Almaty");
+    if (scope === "Country") q = q.eq("country", "Kazakhstan");
+
+    q.then(({ data }) => {
       setRows(data ?? []);
     });
   }, [scope, mode]);
 
-  const filtered = scope === "City" ? rows.filter(r => r.city === "Almaty") : rows;
+  const handleChallenge = async () => {
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+    await supabase.from("rooms").insert({
+      code,
+      host_guest_name: "Challenger",
+      time_control: mode === "blitz" ? "blitz-3" : "rapid-10",
+      status: "waiting",
+    });
+    navigate({ to: "/play/$roomId", params: { roomId: code } });
+  };
 
   return (
     <AppShell>
@@ -47,16 +66,16 @@ function Leaderboard() {
               <tr><th className="text-left p-3 w-12">#</th><th className="text-left p-3">Player</th><th className="text-left p-3">City</th><th className="text-right p-3">Rating</th><th className="text-right p-3">W/L</th><th className="text-right p-3">Streak</th><th></th></tr>
             </thead>
             <tbody>
-              {filtered.length === 0 && <tr><td colSpan={7} className="p-10 text-center text-ink-muted font-serif">Loading rankings…</td></tr>}
-              {filtered.map((r, i) => (
+              {rows.length === 0 && <tr><td colSpan={7} className="p-10 text-center text-ink-muted font-serif">Loading rankings…</td></tr>}
+              {rows.map((r, i) => (
                 <tr key={r.id} className="border-b border-dashed border-border hover:bg-paper">
                   <td className="p-3 text-gold">{i + 1}</td>
                   <td className="p-3 text-ink font-medium">{r.username}</td>
                   <td className="p-3 text-ink-muted">{r.city ?? "—"}</td>
-                  <td className="p-3 text-right text-forest">{r.rating}</td>
+                  <td className="p-3 text-right text-forest">{r.score}</td>
                   <td className="p-3 text-right">{r.wins}/{r.losses}</td>
                   <td className="p-3 text-right">{r.streak}</td>
-                  <td className="p-3 text-right"><button className="text-[10px] uppercase tracking-wider text-gold hover:text-forest">Challenge</button></td>
+                  <td className="p-3 text-right"><button onClick={handleChallenge} className="text-[10px] uppercase tracking-wider text-gold hover:text-forest">Challenge</button></td>
                 </tr>
               ))}
             </tbody>

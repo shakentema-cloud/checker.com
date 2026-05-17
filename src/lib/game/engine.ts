@@ -73,16 +73,31 @@ export function countPieces(board: Board) {
 function getSimpleMovesForPiece(board: Board, pos: Position, piece: Piece): Move[] {
   const moves: Move[] = [];
   for (const [dr, dc] of getDirections(piece)) {
-    const nr = pos.row + dr,
-      nc = pos.col + dc;
-    if (isInBounds(nr, nc) && !board[nr][nc]) {
-      moves.push({
-        from: pos,
-        to: { row: nr, col: nc },
-        captures: [],
-        isKingMove: piece.type === "king",
-        promotesToKing: shouldPromote(piece, nr),
-      });
+    if (piece.type === "king") {
+      let nr = pos.row + dr, nc = pos.col + dc;
+      while (isInBounds(nr, nc)) {
+        if (board[nr][nc]) break;
+        moves.push({
+          from: pos,
+          to: { row: nr, col: nc },
+          captures: [],
+          isKingMove: true,
+          promotesToKing: false,
+        });
+        nr += dr;
+        nc += dc;
+      }
+    } else {
+      const nr = pos.row + dr, nc = pos.col + dc;
+      if (isInBounds(nr, nc) && !board[nr][nc]) {
+        moves.push({
+          from: pos,
+          to: { row: nr, col: nc },
+          captures: [],
+          isKingMove: false,
+          promotesToKing: shouldPromote(piece, nr),
+        });
+      }
     }
   }
   return moves;
@@ -96,45 +111,94 @@ function getCapturesForPiece(
 ): Move[] {
   const captures: Move[] = [];
   for (const [dr, dc] of getDirections(piece)) {
-    const enemyRow = pos.row + dr,
-      enemyCol = pos.col + dc;
-    const landRow = pos.row + dr * 2,
-      landCol = pos.col + dc * 2;
-    if (!isInBounds(landRow, landCol)) continue;
-    const enemyCell = board[enemyRow][enemyCol];
-    if (!enemyCell || enemyCell.color === piece.color) continue;
-    if (alreadyCaptured.some((p) => p.row === enemyRow && p.col === enemyCol)) continue;
-    if (board[landRow][landCol] !== null) continue;
-    const capturePos = { row: enemyRow, col: enemyCol };
-    const tempBoard = cloneBoard(board);
-    tempBoard[landRow][landCol] = tempBoard[pos.row][pos.col];
-    tempBoard[pos.row][pos.col] = null;
-    tempBoard[enemyRow][enemyCol] = null;
-    const moved = tempBoard[landRow][landCol]!;
-    if (shouldPromote(moved, landRow)) tempBoard[landRow][landCol] = { ...moved, type: "king" };
-    const chains = getCapturesForPiece(
-      tempBoard,
-      { row: landRow, col: landCol },
-      tempBoard[landRow][landCol]!,
-      [...alreadyCaptured, capturePos],
-    );
-    if (!chains.length) {
-      captures.push({
-        from: pos,
-        to: { row: landRow, col: landCol },
-        captures: [capturePos],
-        isKingMove: piece.type === "king",
-        promotesToKing: shouldPromote(piece, landRow),
-      });
+    if (piece.type === "king") {
+      let nr = pos.row + dr, nc = pos.col + dc;
+      let foundEnemy: Position | null = null;
+      while (isInBounds(nr, nc)) {
+        const cell = board[nr][nc];
+        if (cell) {
+          if (cell.color === piece.color) break;
+          if (alreadyCaptured.some((p) => p.row === nr && p.col === nc)) break;
+          if (foundEnemy) break;
+          foundEnemy = { row: nr, col: nc };
+        } else if (foundEnemy) {
+          const capturePos = foundEnemy;
+          const landRow = nr, landCol = nc;
+          const tempBoard = cloneBoard(board);
+          tempBoard[landRow][landCol] = tempBoard[pos.row][pos.col];
+          tempBoard[pos.row][pos.col] = null;
+          tempBoard[capturePos.row][capturePos.col] = null;
+          const moved = tempBoard[landRow][landCol]!;
+          const chains = getCapturesForPiece(
+            tempBoard,
+            { row: landRow, col: landCol },
+            moved,
+            [...alreadyCaptured, capturePos],
+          );
+          if (!chains.length) {
+            captures.push({
+              from: pos,
+              to: { row: landRow, col: landCol },
+              captures: [capturePos],
+              isKingMove: true,
+              promotesToKing: false,
+            });
+          } else {
+            for (const chain of chains) {
+              captures.push({
+                from: pos,
+                to: chain.to,
+                captures: [capturePos, ...chain.captures],
+                isKingMove: true,
+                promotesToKing: false,
+              });
+            }
+          }
+        }
+        nr += dr;
+        nc += dc;
+      }
     } else {
-      for (const chain of chains) {
+      const enemyRow = pos.row + dr,
+        enemyCol = pos.col + dc;
+      const landRow = pos.row + dr * 2,
+        landCol = pos.col + dc * 2;
+      if (!isInBounds(landRow, landCol)) continue;
+      const enemyCell = board[enemyRow][enemyCol];
+      if (!enemyCell || enemyCell.color === piece.color) continue;
+      if (alreadyCaptured.some((p) => p.row === enemyRow && p.col === enemyCol)) continue;
+      if (board[landRow][landCol] !== null) continue;
+      const capturePos = { row: enemyRow, col: enemyCol };
+      const tempBoard = cloneBoard(board);
+      tempBoard[landRow][landCol] = tempBoard[pos.row][pos.col];
+      tempBoard[pos.row][pos.col] = null;
+      tempBoard[enemyRow][enemyCol] = null;
+      const moved = tempBoard[landRow][landCol]!;
+      if (shouldPromote(moved, landRow)) tempBoard[landRow][landCol] = { ...moved, type: "king" };
+      const chains = getCapturesForPiece(
+        tempBoard,
+        { row: landRow, col: landCol },
+        tempBoard[landRow][landCol]!,
+        [...alreadyCaptured, capturePos],
+      );
+      if (!chains.length) {
         captures.push({
           from: pos,
-          to: chain.to,
-          captures: [capturePos, ...chain.captures],
-          isKingMove: piece.type === "king",
-          promotesToKing: chain.promotesToKing || shouldPromote(piece, landRow),
+          to: { row: landRow, col: landCol },
+          captures: [capturePos],
+          isKingMove: false,
+          promotesToKing: shouldPromote(piece, landRow),
         });
+      } else {
+        for (const chain of chains) {
+          captures.push({
+            from: pos,
+            to: chain.to,
+            captures: [capturePos, ...chain.captures],
+            isKingMove: false,
+            promotesToKing: chain.promotesToKing || shouldPromote(piece, landRow),
+          });
+        }
       }
     }
   }

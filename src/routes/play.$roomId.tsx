@@ -53,11 +53,30 @@ function Room() {
         if (payload.new) {
           setRoom(payload.new);
           if (payload.new.status === "playing") setStatus("playing");
+          if (payload.new.board) {
+            useGameStore.getState().applyRemoteState(payload.new.board, payload.new.current_turn, payload.new.move_history ?? []);
+          }
         }
       }).subscribe();
 
     return () => { mounted = false; supabase.removeChannel(channel); };
   }, [roomId, initGame, user, guest]);
+
+  // Sync our moves to the server
+  useEffect(() => {
+    if (status !== "playing") return;
+    if (!room) return;
+    // We only broadcast if WE just made a move (which means it's now the OTHER player's turn, OR we just took a piece and we are a specific player).
+    // Actually, simpler: if our local moveCount is greater than the room's moveHistory length, it means we made a move locally.
+    const roomMoves = room.move_history?.length || 0;
+    if (state.moveCount > roomMoves) {
+      supabase.from("rooms").update({
+        board: state.board as any,
+        current_turn: state.currentTurn,
+        move_history: state.moveHistory.map(m => m.notation) as any
+      }).eq("code", roomId).then();
+    }
+  }, [state.moveCount, status, room, roomId]);
 
   const takeSeat = async () => {
     const name = user?.user_metadata?.display_name || guest?.display_name || "Guest";

@@ -42,7 +42,7 @@ export interface GameState {
   currentTurn: PlayerColor;
   status: GameStatus;
   winner: PlayerColor | null;
-  reason: string | null;
+  reason?: string | null;
   moveHistory: HistoricalMove[];
   capturedRed: number;
   capturedBlack: number;

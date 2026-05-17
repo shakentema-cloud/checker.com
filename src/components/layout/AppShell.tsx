@@ -69,7 +69,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </nav>
       <footer className="hidden md:block border-t border-border bg-paper/40 py-6 mt-12">
         <div className="mx-auto max-w-7xl px-6 flex flex-wrap justify-between gap-4 text-[11px] uppercase tracking-[0.18em] font-sans text-ink-muted">
-          <span>Checker.com — Private Grandmaster Archive</span>
+          <span>© 2026 Checker.com · Almaty, Kazakhstan · American Checkers</span>
           <span className="flex gap-5">
             <Link to="/help">Help</Link>
             <Link to="/settings">Settings</Link>

@@ -19,49 +19,39 @@ Not a game. A platform.
 The difference matters. A game you play once.
 A platform gives you a reason to come back.
 
-Live demo: https://checker-com.lovable.app
+Live demo: (Ready for Vercel Deployment)
 GitHub: https://github.com/shakentema-cloud/checker.com
 
 ---
 
 ## What I actually built
 
-**A full game engine** - diagonal movement, mandatory captures, 
-chain jumps, king promotion, winner detection. Zero shortcuts. 
-If the rule exists, the engine enforces it.
+**A full American/International engine** - diagonal movement, mandatory captures, 
+chain jumps, king promotion, winner detection. And yes, **Flying Kings** are real. 
+Kings step the full length of the diagonal. Zero shortcuts. If the rule exists, the engine enforces it.
 
-**AI opponent with 4 difficulty levels** - from 400 ELO Novice 
-to 1900 ELO Master. Built on minimax with alpha-beta pruning. 
-The hard level actually thinks.
+**Real-Time Live Multiplayer** - Generate a 6-character room code. Send the link. 
+They click it and drop directly into the match. No sign-up walls. No tedious handshakes. 
+Moves sync instantly over Supabase Realtime channels. A frictionless competitive loop.
 
-**AI Coach** - after every game, it tells you what went wrong 
-and why. Not engine output. Plain language. "You left your back 
-row open on move 8. Here is the pattern." Nobody else has this 
-for checkers. Not one platform.
+**AI Coach Dossiers** - after every game, the coach tells you what went wrong 
+and why. Not engine output. Plain language. 
+"You left your back row open on move 8. Here is the pattern." 
+Click any past session in your Dashboard, and a cinematic review panel opens. 
+Summary. Key Moments. Training Plan. Nobody else has this for checkers. Not one platform.
+
+**AI opponent with 5 difficulty tiers** - from Apprentice to Grandmaster. 
+Built on minimax with alpha-beta pruning. The hard level actually thinks.
 
 **Move accuracy scoring** - every move you make is classified. 
 Brilliant. Great. Good. Inaccuracy. Mistake. Blunder. 
 Like chess.com's game review, but for checkers.
-Which has never existed before.
 
-**Daily Tactics** - one puzzle per day. Streak system. 
-Solve it fast, climb the speed leaderboard. Miss a day, 
-your streak dies. Simple hook. It works.
-
-**3-Minute Rush** - solve as many tactical positions as possible 
-before time runs out. Three mistakes and it's over. 
-Our Puzzle Rush. Completely addictive.
+**Daily Tactics & 3-Minute Rush** - solve as many tactical positions as possible 
+before time runs out. Three mistakes and it's over. Completely addictive.
 
 **City Leaderboards** - not just global. Top 10 in Almaty. 
 Top 100 in Kazakhstan. Local pride is a real thing. 
-No other checkers platform thought about this.
-
-**Friend Rooms** - 6-character code, share the link, 
-opponent joins, game starts. Real-time. Anti-stall timer built in. 
-No toxic stalling.
-
-**6 piece color options** - Oxblood. Forest. Gold. Ivory. 
-Midnight. Crimson. Choose what represents you.
 
 **Pro tier ($4.99/month)** - unlimited coaching, puzzle rush, 
 game replay export, premium board themes. No ads ever. 
@@ -76,7 +66,7 @@ checkers never figured out how to combine great product with great media
 with great community. He basically described the gap and left it open.
 
 I looked at every checkers site that exists.
-247checkers. cardgames.io. playcheckers.io. Mobile apps with 2-star reviews.
+247checkers. cardgames.io. Mobile apps with 2-star reviews.
 The complaints were always the same - bad AI, ads after every game, 
 no accounts, no progress, nothing brings you back.
 
@@ -87,13 +77,12 @@ I built the product.
 
 ## Tech
 
-- Next.js 14, TypeScript, Tailwind CSS
-- Zustand for game state
-- Supabase - auth, database, real-time
-- Socket.io - WebSocket multiplayer
-- Minimax + alpha-beta pruning - AI engine
-- Stripe - Pro subscription
-- Vercel + Railway - deployment
+- **React + Vite SPA** (Say goodbye to SSR limits, perfectly optimized for edge caching)
+- **TanStack Router** for flawless client-side routing
+- **Zustand** for complex board state management
+- **Supabase** - Auth, Database, and Realtime WebSocket multiplayer syncing
+- **Minimax + alpha-beta pruning** - Embedded AI engine
+- **Vercel** - Deployment (fully compatible routing rewrites)
 
 ---
 
@@ -102,7 +91,7 @@ I built the product.
 Anyone who plays checkers and wanted a platform that takes them seriously.
 
 The CIS market specifically — Kazakhstan, Russia, Ukraine — 
-where shashki is cultural, not casual, 
+where *shashki* is cultural, not casual, 
 and no serious platform exists in their language for their community.
 
 That is the niche. That is the moat.
