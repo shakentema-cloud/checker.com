@@ -77,7 +77,7 @@ with great community. He basically described the gap and left it open.
 
 I looked at every checkers site that exists.
 247checkers. cardgames.io. playcheckers.io. Mobile apps with 2-star reviews.
-The complaints were always the same — bad AI, ads after every game, 
+The complaints were always the same - bad AI, ads after every game, 
 no accounts, no progress, nothing brings you back.
 
 The market had the game. Nobody built the product.
@@ -94,22 +94,6 @@ I built the product.
 - Minimax + alpha-beta pruning - AI engine
 - Stripe - Pro subscription
 - Vercel + Railway - deployment
-
----
-
-## What this is for
-
-nFactorial School checkers challenge, 2025.
-
-The requirement was to build something that stands out.
-Not to repeat what already exists.
-
-Most submissions will have a board and some pieces.
-This one has a coaching system, a leaderboard with city filters, 
-a daily puzzle with streaks, a rush mode, a friend room system, 
-a Pro subscription, and a reason for someone to come back tomorrow.
-
-That was the goal. Not a game. A product.
 
 ---
 
