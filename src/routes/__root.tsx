@@ -1,14 +1,5 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  Outlet,
-  Link,
-  createRootRouteWithContext,
-  useRouter,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router";
-
-import appCss from "../styles.css?url";
+import { QueryClient } from "@tanstack/react-query";
+import { Outlet, Link, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
 
 function NotFoundComponent() {
   return (
@@ -68,56 +59,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Checker.com" },
-      { name: "description", content: "A premium checkers platform with AI opponents, daily tactics, game review, city leaderboards, clubs, and a private grandmaster archive design." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Checker.com" },
-      { property: "og:description", content: "A premium checkers platform with AI opponents, daily tactics, game review, city leaderboards, clubs, and a private grandmaster archive design." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Checker.com" },
-      { name: "twitter:description", content: "A premium checkers platform with AI opponents, daily tactics, game review, city leaderboards, clubs, and a private grandmaster archive design." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/5n9AgkUiaYhvkLKtFvRB51E63DT2/social-images/social-1779013784980-checkerbackground.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/5n9AgkUiaYhvkLKtFvRB51E63DT2/social-images/social-1779013784980-checkerbackground.webp" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-    ],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
 
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
-
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-    </QueryClientProvider>
-  );
+  return <Outlet />;
 }
