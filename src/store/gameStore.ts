@@ -43,12 +43,71 @@ function isHistoricalMove(value: unknown): value is HistoricalMove {
     Array.isArray(maybeMove.captures);
 }
 
+function saveCompletedGameSnapshot(
+  finalState: GameState,
+  mode: GameMode,
+  playerColor: PlayerColor,
+  aiDifficulty: AIDifficulty,
+  gameId: string | null,
+  opponentLabel: string,
+  winner: PlayerColor | null,
+  reason: string | null | undefined,
+) {
+  const playerMoves = finalState.moveHistory.filter((h) => h.player === playerColor);
+  const avgAcc = playerMoves.length
+    ? playerMoves.reduce((a, c) => a + (c.accuracy || 0), 0) / playerMoves.length
+    : 0;
+  const result: "win" | "loss" | "draw" =
+    winner === null ? "draw"
+    : winner === playerColor ? "win"
+    : "loss";
+
+  const gid = gameId || `g-${Date.now()}`;
+
+  store.addGame({
+    id: gid,
+    mode,
+    opponent: mode === "vs-ai" ? `Engine Tier ${aiDifficulty + 1}` : opponentLabel,
+    playerColor,
+    result,
+    reason: reason ?? null,
+    moves: finalState.moveCount,
+    accuracy: avgAcc,
+    notation: finalState.moveHistory.map((h) => h.notation || ""),
+    boardSnapshots: finalState.moveHistory.map((h) => h.boardSnapshot),
+    duration: Date.now() - finalState.startTime,
+    createdAt: Date.now(),
+  });
+
+  userStore.updateStats(result, avgAcc);
+
+  const coach = generateCoachSession(gid, finalState.moveHistory, playerColor, result);
+  store.saveCoach(coach);
+
+  const games = store.getGames();
+  const gi = games.findIndex((g) => g.id === gid);
+  if (gi >= 0) {
+    games[gi].coachSessionId = coach.id;
+    localStorage.setItem("checker.games", JSON.stringify(games));
+  }
+
+  if (result === "win") userStore.addAchievement("first-win");
+  if (finalState.moveHistory.some((h) => h.move.captures.length > 1)) {
+    userStore.addAchievement("double-jump");
+  }
+  if (finalState.moveHistory.some((h) => h.move.promotesToKing)) {
+    userStore.addAchievement("first-king");
+  }
+  userStore.addAchievement("first-game");
+}
+
 interface GameStore {
   state: GameState;
   mode: GameMode;
   timeControl: TimeControl;
   aiDifficulty: AIDifficulty;
   playerColor: PlayerColor;
+  opponentLabel: string;
   isAIThinking: boolean;
   timeRed: number;
   timeBlack: number;
@@ -64,8 +123,17 @@ interface GameStore {
   tickTimer: () => void;
   resetGame: () => void;
   setPlayerColor: (color: PlayerColor) => void;
+  setOpponentLabel: (label: string) => void;
   loadBoard: (board: Board, currentTurn: PlayerColor) => void;
   applyRemoteState: (board: Board, currentTurn: PlayerColor, moveHistory: any[]) => void;
+  syncOnlineRoomState: (payload: {
+    board: Board;
+    currentTurn: PlayerColor;
+    moveHistory: any[];
+    status: "waiting" | "playing" | "finished";
+    winner?: PlayerColor | null;
+    reason?: string | null;
+  }) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -75,6 +143,7 @@ export const useGameStore = create<GameStore>()(
     timeControl: "rapid-10",
     aiDifficulty: 2,
     playerColor: "red",
+    opponentLabel: "Local Player",
     isAIThinking: false,
     timeRed: 600,
     timeBlack: 600,
@@ -89,6 +158,7 @@ export const useGameStore = create<GameStore>()(
         s.aiDifficulty = difficulty;
         s.timeControl = timeControl;
         s.playerColor = playerColor;
+        s.opponentLabel = mode === "vs-ai" ? `Engine Tier ${difficulty + 1}` : "Local Player";
         s.isAIThinking = false;
         s.timeRed = t;
         s.timeBlack = t;
@@ -175,58 +245,16 @@ export const useGameStore = create<GameStore>()(
       if (over.isOver && !hasSaved) {
         set((s) => { s.hasSaved = true; });
         const finalState = get().state;
-        const playerMoves = finalState.moveHistory.filter((h) => h.player === playerColor);
-        const avgAcc = playerMoves.length
-          ? playerMoves.reduce((a, c) => a + (c.accuracy || 0), 0) / playerMoves.length
-          : 0;
-        const result: "win" | "loss" | "draw" =
-          over.winner === null ? "draw"
-          : over.winner === playerColor ? "win"
-          : "loss";
-
-        const gid = gameId || `g-${Date.now()}`;
-
-        // Save game record
-        store.addGame({
-          id: gid,
-          mode: get().mode,
-          opponent: get().mode === "vs-ai" ? `Engine Tier ${get().aiDifficulty + 1}` : "Local Player",
+        saveCompletedGameSnapshot(
+          finalState,
+          get().mode,
           playerColor,
-          result,
-          reason: over.reason,
-          moves: finalState.moveCount,
-          accuracy: avgAcc,
-          notation: finalState.moveHistory.map((h) => h.notation || ""),
-          boardSnapshots: finalState.moveHistory.map((h) => h.boardSnapshot),
-          duration: Date.now() - finalState.startTime,
-          createdAt: Date.now(),
-        });
-
-        // Update user stats
-        userStore.updateStats(result, avgAcc);
-
-        // Generate coach session
-        const coach = generateCoachSession(gid, finalState.moveHistory, playerColor, result);
-        store.saveCoach(coach);
-
-        // Update game record with coach reference
-        const games = store.getGames();
-        const gi = games.findIndex((g) => g.id === gid);
-        if (gi >= 0) {
-          games[gi].coachSessionId = coach.id;
-          // Write back (use addGame logic — it deduplicates by id, so update directly)
-          localStorage.setItem("checker.games", JSON.stringify(games));
-        }
-
-        // Achievements
-        if (result === "win") userStore.addAchievement("first-win");
-        if (finalState.moveHistory.some((h) => h.move.captures.length > 1)) {
-          userStore.addAchievement("double-jump");
-        }
-        if (finalState.moveHistory.some((h) => h.move.promotesToKing)) {
-          userStore.addAchievement("first-king");
-        }
-        userStore.addAchievement("first-game");
+          get().aiDifficulty,
+          gameId,
+          get().opponentLabel,
+          over.winner,
+          over.reason,
+        );
       }
 
       if (!over.isOver && mode === "vs-ai" && get().state.currentTurn !== playerColor) {
@@ -304,6 +332,8 @@ export const useGameStore = create<GameStore>()(
 
     setPlayerColor: (color) => set((s) => { s.playerColor = color; }),
 
+    setOpponentLabel: (label) => set((s) => { s.opponentLabel = label; }),
+
     loadBoard: (board, currentTurn) => set((s) => {
       s.state = createInitialGameState();
       s.state.board = cloneBoard(board);
@@ -330,5 +360,38 @@ export const useGameStore = create<GameStore>()(
       s.state.selectedPiece = null;
       s.state.validMoves = [];
     }),
+
+    syncOnlineRoomState: ({ board, currentTurn, moveHistory, status, winner = null, reason = null }) => {
+      get().applyRemoteState(board, currentTurn, moveHistory);
+
+      if (status === "finished") {
+        set((s) => {
+          s.state.status = "finished";
+          s.state.winner = winner;
+          s.state.reason = reason;
+        });
+
+        const snapshot = get();
+        if (!snapshot.hasSaved) {
+          set((s) => { s.hasSaved = true; });
+          saveCompletedGameSnapshot(
+            snapshot.state,
+            snapshot.mode,
+            snapshot.playerColor,
+            snapshot.aiDifficulty,
+            snapshot.gameId,
+            snapshot.opponentLabel,
+            winner,
+            reason,
+          );
+        }
+      } else {
+        set((s) => {
+          s.state.status = status === "waiting" ? "waiting" : "playing";
+          s.state.winner = null;
+          s.state.reason = null;
+        });
+      }
+    },
   })),
 );
