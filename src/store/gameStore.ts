@@ -5,6 +5,7 @@ import type {
   Board,
   GameMode,
   GameState,
+  HistoricalMove,
   Move,
   PlayerColor,
   TimeControl,
@@ -15,6 +16,7 @@ import {
   checkGameOver,
   classifyMove,
   cloneBoard,
+  countPieces,
   createInitialGameState,
   getAllValidMoves,
   getValidMovesForPiece,
@@ -28,6 +30,17 @@ function getTimeSeconds(tc: TimeControl): number {
     "blitz-3": 180, "blitz-5": 300, "rapid-10": 600,
     "rapid-30": 1800, daily: 86400, unlimited: 0,
   } as Record<TimeControl, number>)[tc];
+}
+
+function isHistoricalMove(value: unknown): value is HistoricalMove {
+  if (!value || typeof value !== "object") return false;
+  const maybeMove = (value as HistoricalMove).move;
+  return !!maybeMove &&
+    typeof maybeMove.from?.row === "number" &&
+    typeof maybeMove.from?.col === "number" &&
+    typeof maybeMove.to?.row === "number" &&
+    typeof maybeMove.to?.col === "number" &&
+    Array.isArray(maybeMove.captures);
 }
 
 interface GameStore {
@@ -298,10 +311,24 @@ export const useGameStore = create<GameStore>()(
     }),
 
     applyRemoteState: (board, currentTurn, moveHistory) => set((s) => {
-      if (s.state.moveHistory.length > moveHistory.length) return;
+      const remoteLength = Array.isArray(moveHistory) ? moveHistory.length : 0;
+      if (s.state.moveHistory.length > remoteLength) return;
+
+      const normalizedHistory = Array.isArray(moveHistory)
+        ? moveHistory.filter(isHistoricalMove)
+        : [];
+      const pieceCount = countPieces(board);
+
       s.state.board = cloneBoard(board);
       s.state.currentTurn = currentTurn;
-      s.state.moveCount = moveHistory.length;
+      if (normalizedHistory.length === remoteLength || remoteLength === 0) {
+        s.state.moveHistory = normalizedHistory;
+      }
+      s.state.moveCount = remoteLength;
+      s.state.capturedRed = Math.max(0, 12 - pieceCount.red);
+      s.state.capturedBlack = Math.max(0, 12 - pieceCount.black);
+      s.state.selectedPiece = null;
+      s.state.validMoves = [];
     }),
   })),
 );

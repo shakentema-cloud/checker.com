@@ -22,10 +22,7 @@ A platform gives you a reason to come back.
 Live demo: https://checker-com.vercel.app/
 GitHub: https://github.com/shakentema-cloud/checker.com
 
-
-I have made custom GPT Checker-com that answers to any question about our product Checker-com and guides users
-
-GPT Checker-com : https://chatgpt.com/g/g-6a0a0dc50c1081919e669b2ca14d0f4d-checker-com
+Temir AI is built into the product now. It lives inside Checker.com itself, answers checkers-specific questions, helps users navigate the app, and can teach directly from live board positions.
 
 ---
 
@@ -35,9 +32,9 @@ GPT Checker-com : https://chatgpt.com/g/g-6a0a0dc50c1081919e669b2ca14d0f4d-check
 chain jumps, king promotion, winner detection. And yes, **Flying Kings** are real. 
 Kings step the full length of the diagonal. Zero shortcuts. If the rule exists, the engine enforces it.
 
-**Real-Time Live Multiplayer** - Generate a 6-character room code. Send the link. 
-They click it and drop directly into the match. No sign-up walls. No tedious handshakes. 
-Moves sync instantly over Supabase Realtime channels. A frictionless competitive loop.
+**Real-Time Live Multiplayer** - Generate a 6-character room code. Send the link.
+They click it and drop directly into the match. No sign-up walls. No tedious handshakes.
+Host and guest seats are resolved from the actual active profile, so the right player controls the right color and friend rooms start cleanly.
 
 **AI Coach Dossiers & Per-Move Feedback** - after every game, the coach tells you what went wrong 
 and why. Not engine output. Plain language. 
@@ -50,6 +47,9 @@ Nobody else has this for checkers. Not one platform.
 
 **AI opponent with 5 difficulty tiers** - from Apprentice to Grandmaster. 
 Built on minimax with alpha-beta pruning. The hard level actually thinks.
+
+**Temir AI inside the app** - a checkers-specific assistant, not a static script.
+It can explain rules, analyze board positions, guide users to the right screen inside the app, and teach from board context.
 
 **Move accuracy scoring** - every move you make is classified. 
 Brilliant. Great. Good. Inaccuracy. Mistake. Blunder. 
@@ -64,6 +64,9 @@ Top 100 in Kazakhstan. Local pride is a real thing.
 **Pro tier ($4.99/month)** - unlimited coaching, puzzle rush, 
 game replay export, premium board themes. No ads ever. 
 That last part is also a product decision, not just a feature.
+
+**Unified player profile menu** - the top-right avatar is the account hub on both desktop and mobile.
+Profile, settings, help, sign in/out, and avatar upload all live in one place now instead of being scattered.
 
 ---
 
@@ -88,7 +91,7 @@ I built the product.
 - **React + Vite SPA** (Say goodbye to SSR limits, perfectly optimized for edge caching)
 - **TanStack Router** for flawless client-side routing
 - **Zustand** for complex board state management
-- **Supabase** - Auth, Database, and Realtime WebSocket multiplayer syncing (Secure Host/Guest control separation)
+- **Supabase** - Auth, Database, and Realtime WebSocket multiplayer syncing for friend rooms
 - **Minimax + alpha-beta pruning** - Embedded AI engine
 - **Framer Motion + 21st Magic UI** - Next-generation responsive UI, particle effects, and layout animations
 - **Vercel** - Deployment (fully compatible routing rewrites)
@@ -104,6 +107,16 @@ where *shashki* is cultural, not casual,
 and no serious platform exists in their language for their community.
 
 That is the niche. That is the moat.
+
+---
+
+## Profiles, access, and onboarding
+
+- You can create a full account or continue as a local player on one device.
+- Local players still get a real profile, saved stats, settings, and avatar upload.
+- The top-right avatar opens profile, settings, and help on both phone and laptop.
+- Friend rooms do not require a signup wall. One player creates the room, the other opens the link, and the open seat is claimed directly.
+- Help is treated as a product feature, not a buried footer link. Users can reach it from the avatar menu at any time.
 
 ---
 

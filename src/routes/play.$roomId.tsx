@@ -14,6 +14,20 @@ export const Route = createFileRoute("/play/$roomId")({
 });
 
 const DEFAULT_TIME_CONTROL: TimeControl = "rapid-10";
+const ROOM_SEAT_KEY_PREFIX = "checker.room-seat.";
+
+type RoomSeat = "host" | "guest" | "spectator";
+
+function readStoredSeat(roomId: string): RoomSeat | null {
+  if (typeof window === "undefined") return null;
+  const value = localStorage.getItem(`${ROOM_SEAT_KEY_PREFIX}${roomId}`);
+  return value === "host" || value === "guest" ? value : null;
+}
+
+function storeSeat(roomId: string, seat: "host" | "guest") {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(`${ROOM_SEAT_KEY_PREFIX}${roomId}`, seat);
+}
 
 function normalizeTimeControl(value: unknown): TimeControl {
   if (
@@ -33,11 +47,18 @@ function getSeat(
   room: any,
   userId?: string,
   guestName?: string,
-): "host" | "guest" | "spectator" {
+  storedSeat?: RoomSeat | null,
+): RoomSeat {
   if (room.host_user_id === userId || (room.host_guest_name && room.host_guest_name === guestName)) {
     return "host";
   }
   if (room.guest_user_id === userId || (room.guest_guest_name && room.guest_guest_name === guestName)) {
+    return "guest";
+  }
+  if (storedSeat === "host" && (room.host_user_id || room.host_guest_name)) {
+    return "host";
+  }
+  if (storedSeat === "guest" && (room.guest_user_id || room.guest_guest_name || (!room.guest_user_id && !room.guest_guest_name))) {
     return "guest";
   }
   if (!room.guest_user_id && !room.guest_guest_name) {
@@ -48,14 +69,14 @@ function getSeat(
 
 function Room() {
   const { roomId } = Route.useParams();
-  const { user, localUser: guest } = useAuth();
+  const { user, localUser } = useAuth();
   const [room, setRoom] = useState<any>(null);
   const [status, setStatus] = useState<"loading" | "waiting" | "playing" | "not-found">("loading");
   const initGame = useGameStore((s) => s.initGame);
   const setPlayerColor = useGameStore((s) => s.setPlayerColor);
   const selectPiece = useGameStore((s) => s.selectPiece);
   const state = useGameStore((s) => s.state);
-  const [seat, setSeat] = useState<"host" | "guest" | "spectator">("spectator");
+  const [seat, setSeat] = useState<RoomSeat>("spectator");
   const initializedStoreFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -68,7 +89,7 @@ function Room() {
         const { data: created } = await supabase.from("rooms").insert({
           code: roomId,
           host_user_id: user?.id ?? null,
-          host_guest_name: user ? null : (guest?.display_name ?? "Host"),
+          host_guest_name: user ? null : (localUser?.display_name || localUser?.username || "Host"),
           board: createInitialBoard() as any,
           current_turn: "red",
           move_history: [] as any,
@@ -76,11 +97,13 @@ function Room() {
           status: "waiting",
         }).select().maybeSingle();
         setRoom(created);
+        storeSeat(roomId, "host");
         setSeat("host");
         setStatus("waiting");
       } else {
+        const storedSeat = readStoredSeat(roomId);
         setRoom(data);
-        setSeat(getSeat(data, user?.id, guest?.display_name));
+        setSeat(getSeat(data, user?.id, localUser?.display_name, storedSeat));
         setStatus(data.status === "playing" ? "playing" : "waiting");
       }
     })();
@@ -88,8 +111,9 @@ function Room() {
     const channel = supabase.channel(`room:${roomId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "rooms", filter: `code=eq.${roomId}` }, (payload: any) => {
         if (payload.new) {
+          const storedSeat = readStoredSeat(roomId);
           setRoom(payload.new);
-          setSeat(getSeat(payload.new, user?.id, guest?.display_name));
+          setSeat(getSeat(payload.new, user?.id, localUser?.display_name, storedSeat));
           setStatus(payload.new.status === "playing" ? "playing" : "waiting");
           if (payload.new.board) {
             useGameStore.getState().applyRemoteState(payload.new.board, payload.new.current_turn, payload.new.move_history ?? []);
@@ -98,7 +122,7 @@ function Room() {
       }).subscribe();
 
     return () => { mounted = false; supabase.removeChannel(channel); };
-  }, [roomId, user, guest]);
+  }, [roomId, user?.id, localUser?.display_name]);
 
   // Bootstrap online state once per room seat so the AI mode never leaks into friend matches.
   useEffect(() => {
@@ -138,18 +162,19 @@ function Room() {
       void supabase.from("rooms").update({
         board: state.board as any,
         current_turn: state.currentTurn,
-        move_history: state.moveHistory.map(m => m.notation) as any
+        move_history: state.moveHistory as any,
       }).eq("code", roomId);
     }
   }, [state.board, state.currentTurn, state.moveCount, state.moveHistory, status, room, roomId, seat]);
 
   const takeSeat = async () => {
-    const name = user?.user_metadata?.display_name || guest?.display_name || "Guest";
+    const name = user?.user_metadata?.display_name || localUser?.display_name || localUser?.username || "Guest";
     await supabase.from("rooms").update({
       guest_user_id: user?.id ?? null,
       guest_guest_name: user ? null : name,
       status: "playing",
     }).eq("code", roomId);
+    storeSeat(roomId, "guest");
     setSeat("guest");
     setStatus("playing");
   };

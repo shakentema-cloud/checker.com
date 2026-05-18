@@ -55,6 +55,7 @@ export function useAuth() {
 
   return {
     user, session, loading, localUser, currentUser,
+    guest: localUser,
     isAuthed, isPro, displayName,
     signOut, refreshLocalUser,
   };

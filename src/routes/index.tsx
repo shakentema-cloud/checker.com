@@ -41,16 +41,6 @@ function Index() {
   return (
     <AppShell>
       <div className="relative isolate overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <img
-            src="/checkerbackground.png"
-            alt=""
-            aria-hidden="true"
-            className="h-full w-full object-cover object-center opacity-30"
-          />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,248,230,0.28),transparent_45%),linear-gradient(180deg,rgba(247,241,227,0.42),rgba(247,241,227,0.78)_35%,rgba(247,241,227,0.92)_100%)]" />
-        </div>
-
         {/* 1. Hero Geometric */}
         <HeroGeometric
           badge="Private Club"
@@ -68,28 +58,29 @@ function Index() {
         </div>
 
         {/* 2. Container Scroll applied to the game board/ledger */}
-        <div className="bg-ink rounded-t-[4rem] text-parchment overflow-hidden overflow-x-hidden pt-12 pb-24 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] border-t border-gold/20 relative z-10 w-full">
+        <div className="bg-ink rounded-t-[4rem] text-parchment overflow-hidden overflow-x-hidden pt-20 md:pt-24 pb-24 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] border-t border-gold/20 relative z-10 w-full">
           <ContainerScroll
+            className="pt-10 md:pt-16"
             titleComponent={
-              <>
-                <h2 className="text-2xl font-sans uppercase tracking-[0.2em] text-gold/70">
+              <div className="inline-flex flex-col items-center rounded-[2rem] border border-gold/15 bg-parchment/6 px-6 py-4 backdrop-blur-sm shadow-[0_14px_40px_rgba(0,0,0,0.18)]">
+                <h2 className="text-sm md:text-base font-sans uppercase tracking-[0.38em] text-gold/80">
                   Official Ledger
                 </h2>
-                <span className="text-4xl md:text-6xl font-display mt-2 leading-none block text-parchment">
+                <span className="text-4xl md:text-6xl font-display mt-3 leading-none block text-parchment drop-shadow-[0_3px_18px_rgba(0,0,0,0.45)]">
                   Current Open Sessions
                 </span>
-              </>
+              </div>
             }
           >
             <div className="relative aspect-[16/9] w-full h-full bg-paper">
               <img
-                src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1920&q=80"
-                className="w-full h-full object-cover opacity-80"
-                alt="Ancient checkers set"
+                src="/checkers-board-photo.jpg"
+                className="w-full h-full object-cover opacity-92"
+                alt="Wooden checkers pieces on a board"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/12 to-transparent pointer-events-none" />
               <div className="absolute bottom-6 left-6 right-6 md:bottom-12 md:left-12 text-left pointer-events-none">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 font-mono text-[9px] md:text-[11px] uppercase tracking-widest text-gold/60">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 font-mono text-[9px] md:text-[11px] uppercase tracking-widest text-gold/75 drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
                   <div>
                     <div className="text-parchment mb-1">Dossier #412</div>
                     <div>Nur-Sultan vs Almaty</div>
@@ -104,7 +95,7 @@ function Index() {
                   </div>
                   <div>
                     <div className="text-parchment mb-1">Status</div>
-                    <div className="text-forest">Online / Active</div>
+                    <div className="text-gold-bright">Online / Active</div>
                   </div>
                 </div>
               </div>

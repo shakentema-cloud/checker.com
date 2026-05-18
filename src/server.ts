@@ -2,6 +2,8 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleTemirAiRequest } from "./lib/temir-ai-server";
+import type { TemirAssistantRequest } from "./lib/temir-ai-types";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -69,6 +71,13 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (request.method === "POST" && url.pathname === "/api/temir-ai") {
+        const body = (await request.json()) as TemirAssistantRequest;
+        const result = await handleTemirAiRequest(body, env);
+        return Response.json(result);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

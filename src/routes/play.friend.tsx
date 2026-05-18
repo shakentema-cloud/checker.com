@@ -14,9 +14,14 @@ function genCode() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
+function setStoredSeat(code: string, seat: "host" | "guest") {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(`checker.room-seat.${code}`, seat);
+}
+
 function PlayFriend() {
   const navigate = useNavigate();
-  const { user, guest } = useAuth();
+  const { user, localUser } = useAuth();
   const [tc, setTc] = useState("rapid-10");
   const [creating, setCreating] = useState(false);
   const [joinCode, setJoinCode] = useState("");
@@ -26,7 +31,7 @@ function PlayFriend() {
   const create = async () => {
     setCreating(true);
     const code = genCode();
-    const hostName = user?.user_metadata?.display_name || guest?.display_name || "Host";
+    const hostName = user?.user_metadata?.display_name || localUser?.display_name || localUser?.username || "Host";
     try {
       const { error } = await supabase.from("rooms").insert({
         code,
@@ -40,6 +45,7 @@ function PlayFriend() {
       });
       if (error) console.error(error);
     } catch (e) { console.error(e); }
+    setStoredSeat(code, "host");
     const link = `${window.location.origin}/play/${code}`;
     setCreatedLink(link);
     setCreatedCode(code);
