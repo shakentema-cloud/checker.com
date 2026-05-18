@@ -161,7 +161,23 @@ export const FloatingAiAssistant = () => {
         body: JSON.stringify(payload),
       });
 
-      const data = (await response.json()) as TemirAssistantResponse;
+      const raw = await response.text();
+      let data: TemirAssistantResponse | null = null;
+
+      try {
+        data = JSON.parse(raw) as TemirAssistantResponse;
+      } catch {
+        data = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.answer || raw || `Temir AI request failed with status ${response.status}`);
+      }
+
+      if (!data) {
+        throw new Error("Temir AI returned an unreadable response.");
+      }
+
       const aiMessage: ChatMessage = {
         role: "ai",
         content: data.answer,
@@ -177,12 +193,15 @@ export const FloatingAiAssistant = () => {
       }
     } catch (error) {
       console.error("[Temir AI] Request failed:", error);
+      const fallback =
+        error instanceof Error && error.message.trim()
+          ? error.message.trim()
+          : "Temir AI could not reach the analysis service just now. Please try again, and if you were asking about a position, include the move or theme you want help with.";
       setMessages((prev) => [
         ...prev,
         {
           role: "ai",
-          content:
-            "Temir AI could not reach the analysis service just now. Please try again, and if you were asking about a position, include the move or theme you want help with.",
+          content: fallback,
         },
       ]);
     } finally {

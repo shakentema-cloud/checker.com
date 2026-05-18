@@ -78,7 +78,10 @@ function getOpenAiModel(env: unknown): string {
       return value.trim();
     }
   }
-  return process.env.OPENAI_MODEL || "gpt-4.1-mini";
+  if (typeof process !== "undefined" && typeof process.env.OPENAI_MODEL === "string" && process.env.OPENAI_MODEL.trim()) {
+    return process.env.OPENAI_MODEL.trim();
+  }
+  return "gpt-4.1-mini";
 }
 
 function buildCurrentBoardSummary(currentBoard: TemirCurrentBoardContext | null): string {

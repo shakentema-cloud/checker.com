@@ -78,6 +78,47 @@ function Room() {
   const state = useGameStore((s) => s.state);
   const [seat, setSeat] = useState<RoomSeat>("spectator");
   const initializedStoreFor = useRef<string | null>(null);
+  const lastAppliedSnapshotRef = useRef<string | null>(null);
+  const lastSyncedSnapshotRef = useRef<string | null>(null);
+  const syncInFlightRef = useRef(false);
+
+  const getRoomSnapshot = (nextRoom: any) =>
+    JSON.stringify({
+      board: nextRoom?.board ?? null,
+      currentTurn: nextRoom?.current_turn === "black" ? "black" : "red",
+      moveHistory: nextRoom?.move_history ?? [],
+      status: nextRoom?.status ?? "waiting",
+    });
+
+  const getLocalSnapshot = () =>
+    JSON.stringify({
+      board: state.board,
+      currentTurn: state.currentTurn,
+      moveHistory: state.moveHistory,
+      status,
+    });
+
+  const applyRoomState = (nextRoom: any) => {
+    const storedSeat = readStoredSeat(roomId);
+    const nextSeat = getSeat(nextRoom, user?.id, localUser?.display_name, storedSeat);
+    const nextStatus = nextRoom.status === "playing" ? "playing" : "waiting";
+    const nextSnapshot = getRoomSnapshot(nextRoom);
+
+    setRoom(nextRoom);
+    setSeat(nextSeat);
+    setStatus(nextStatus);
+    if (nextSeat === "host" || nextSeat === "guest") {
+      storeSeat(roomId, nextSeat);
+    }
+
+    if (nextRoom.board && lastAppliedSnapshotRef.current !== nextSnapshot) {
+      useGameStore
+        .getState()
+        .applyRemoteState(nextRoom.board, nextRoom.current_turn === "black" ? "black" : "red", nextRoom.move_history ?? []);
+      lastAppliedSnapshotRef.current = nextSnapshot;
+      lastSyncedSnapshotRef.current = nextSnapshot;
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -96,32 +137,43 @@ function Room() {
           time_control: "rapid-10",
           status: "waiting",
         }).select().maybeSingle();
-        setRoom(created);
-        storeSeat(roomId, "host");
-        setSeat("host");
-        setStatus("waiting");
+        if (created) {
+          storeSeat(roomId, "host");
+          applyRoomState(created);
+        }
       } else {
-        const storedSeat = readStoredSeat(roomId);
-        setRoom(data);
-        setSeat(getSeat(data, user?.id, localUser?.display_name, storedSeat));
-        setStatus(data.status === "playing" ? "playing" : "waiting");
+        applyRoomState(data);
       }
     })();
 
     const channel = supabase.channel(`room:${roomId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "rooms", filter: `code=eq.${roomId}` }, (payload: any) => {
         if (payload.new) {
-          const storedSeat = readStoredSeat(roomId);
-          setRoom(payload.new);
-          setSeat(getSeat(payload.new, user?.id, localUser?.display_name, storedSeat));
-          setStatus(payload.new.status === "playing" ? "playing" : "waiting");
-          if (payload.new.board) {
-            useGameStore.getState().applyRemoteState(payload.new.board, payload.new.current_turn, payload.new.move_history ?? []);
-          }
+          applyRoomState(payload.new);
         }
       }).subscribe();
 
     return () => { mounted = false; supabase.removeChannel(channel); };
+  }, [roomId, user?.id, localUser?.display_name]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const refreshRoom = async () => {
+      const { data, error } = await supabase.from("rooms").select("*").eq("code", roomId).maybeSingle();
+      if (cancelled || error || !data) return;
+      applyRoomState(data);
+    };
+
+    void refreshRoom();
+    const interval = window.setInterval(() => {
+      void refreshRoom();
+    }, 1500);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, [roomId, user?.id, localUser?.display_name]);
 
   // Bootstrap online state once per room seat so the AI mode never leaks into friend matches.
@@ -155,28 +207,59 @@ function Room() {
   useEffect(() => {
     if (status !== "playing") return;
     if (!room || seat === "spectator") return;
-    // We only broadcast if WE just made a move (which means it's now the OTHER player's turn, OR we just took a piece and we are a specific player).
-    // Actually, simpler: if our local moveCount is greater than the room's moveHistory length, it means we made a move locally.
-    const roomMoves = room.move_history?.length || 0;
-    if (state.moveCount > roomMoves) {
-      void supabase.from("rooms").update({
-        board: state.board as any,
-        current_turn: state.currentTurn,
-        move_history: state.moveHistory as any,
-      }).eq("code", roomId);
-    }
+    if (syncInFlightRef.current) return;
+
+    const localSnapshot = getLocalSnapshot();
+    const roomSnapshot = getRoomSnapshot(room);
+    if (localSnapshot === roomSnapshot || localSnapshot === lastSyncedSnapshotRef.current) return;
+    if (state.moveCount < (room.move_history?.length ?? 0)) return;
+
+    syncInFlightRef.current = true;
+
+    void (async () => {
+      const { data, error } = await supabase
+        .from("rooms")
+        .update({
+          board: state.board as any,
+          current_turn: state.currentTurn,
+          move_history: state.moveHistory as any,
+          status: "playing",
+        })
+        .eq("code", roomId)
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        console.error("[Room Sync] Failed to sync move:", error);
+      } else if (data) {
+        lastSyncedSnapshotRef.current = localSnapshot;
+        applyRoomState(data);
+      }
+
+      syncInFlightRef.current = false;
+    })();
   }, [state.board, state.currentTurn, state.moveCount, state.moveHistory, status, room, roomId, seat]);
 
   const takeSeat = async () => {
     const name = user?.user_metadata?.display_name || localUser?.display_name || localUser?.username || "Guest";
-    await supabase.from("rooms").update({
-      guest_user_id: user?.id ?? null,
-      guest_guest_name: user ? null : name,
-      status: "playing",
-    }).eq("code", roomId);
+    const { data, error } = await supabase
+      .from("rooms")
+      .update({
+        guest_user_id: user?.id ?? null,
+        guest_guest_name: user ? null : name,
+        status: "playing",
+      })
+      .eq("code", roomId)
+      .select()
+      .maybeSingle();
+    if (error) {
+      console.error("[Room Sync] Failed to take guest seat:", error);
+      return;
+    }
     storeSeat(roomId, "guest");
-    setSeat("guest");
-    setStatus("playing");
+    if (data) {
+      applyRoomState(data);
+    }
   };
 
   const link = typeof window !== "undefined" ? `${window.location.origin}/play/${roomId}` : "";
