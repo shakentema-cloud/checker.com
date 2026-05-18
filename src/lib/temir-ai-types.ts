@@ -1,4 +1,4 @@
-import type { Board, Move, PlayerColor, Position } from "@/lib/game/types";
+import type { Board, Move, PlayerColor, Position } from "./game/types";
 
 export const TEMIR_ROUTE_TARGETS = [
   "/play",
