@@ -90,7 +90,8 @@ export function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-[90vh] w-full flex items-center justify-center overflow-hidden bg-background">
+        <div className="relative min-h-[90vh] w-full flex items-center justify-center overflow-hidden bg-transparent">
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,241,227,0.5),rgba(247,241,227,0.28)_35%,rgba(247,241,227,0.7)_100%)] pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-forest/5 blur-3xl pointer-events-none" />
 
             <div className="absolute inset-0 overflow-hidden pointer-events-none">

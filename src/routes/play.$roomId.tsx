@@ -1,15 +1,50 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Board } from "@/components/game/Board";
 import { useGameStore } from "@/store/gameStore";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { createInitialBoard } from "@/lib/game/engine";
+import type { TimeControl } from "@/lib/game/types";
 
 export const Route = createFileRoute("/play/$roomId")({
   head: ({ params }) => ({ meta: [{ title: `Room ${params.roomId} — Checker.com` }] }),
   component: Room,
 });
+
+const DEFAULT_TIME_CONTROL: TimeControl = "rapid-10";
+
+function normalizeTimeControl(value: unknown): TimeControl {
+  if (
+    value === "blitz-3" ||
+    value === "blitz-5" ||
+    value === "rapid-10" ||
+    value === "rapid-30" ||
+    value === "daily" ||
+    value === "unlimited"
+  ) {
+    return value;
+  }
+  return DEFAULT_TIME_CONTROL;
+}
+
+function getSeat(
+  room: any,
+  userId?: string,
+  guestName?: string,
+): "host" | "guest" | "spectator" {
+  if (room.host_user_id === userId || (room.host_guest_name && room.host_guest_name === guestName)) {
+    return "host";
+  }
+  if (room.guest_user_id === userId || (room.guest_guest_name && room.guest_guest_name === guestName)) {
+    return "guest";
+  }
+  if (!room.guest_user_id && !room.guest_guest_name) {
+    return "guest";
+  }
+  return "spectator";
+}
 
 function Room() {
   const { roomId } = Route.useParams();
@@ -18,8 +53,10 @@ function Room() {
   const [status, setStatus] = useState<"loading" | "waiting" | "playing" | "not-found">("loading");
   const initGame = useGameStore((s) => s.initGame);
   const setPlayerColor = useGameStore((s) => s.setPlayerColor);
+  const selectPiece = useGameStore((s) => s.selectPiece);
   const state = useGameStore((s) => s.state);
   const [seat, setSeat] = useState<"host" | "guest" | "spectator">("spectator");
+  const initializedStoreFor = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -32,6 +69,9 @@ function Room() {
           code: roomId,
           host_user_id: user?.id ?? null,
           host_guest_name: user ? null : (guest?.display_name ?? "Host"),
+          board: createInitialBoard() as any,
+          current_turn: "red",
+          move_history: [] as any,
           time_control: "rapid-10",
           status: "waiting",
         }).select().maybeSingle();
@@ -40,15 +80,7 @@ function Room() {
         setStatus("waiting");
       } else {
         setRoom(data);
-        if (data.host_user_id === user?.id || (data.host_guest_name && data.host_guest_name === guest?.display_name)) {
-          setSeat("host");
-        } else if (data.guest_user_id === user?.id || (data.guest_guest_name && data.guest_guest_name === guest?.display_name)) {
-          setSeat("guest");
-        } else if (!data.guest_user_id && !data.guest_guest_name) {
-          setSeat("guest");
-        } else {
-          setSeat("spectator");
-        }
+        setSeat(getSeat(data, user?.id, guest?.display_name));
         setStatus(data.status === "playing" ? "playing" : "waiting");
       }
     })();
@@ -57,7 +89,8 @@ function Room() {
       .on("postgres_changes", { event: "*", schema: "public", table: "rooms", filter: `code=eq.${roomId}` }, (payload: any) => {
         if (payload.new) {
           setRoom(payload.new);
-          if (payload.new.status === "playing") setStatus("playing");
+          setSeat(getSeat(payload.new, user?.id, guest?.display_name));
+          setStatus(payload.new.status === "playing" ? "playing" : "waiting");
           if (payload.new.board) {
             useGameStore.getState().applyRemoteState(payload.new.board, payload.new.current_turn, payload.new.move_history ?? []);
           }
@@ -67,31 +100,48 @@ function Room() {
     return () => { mounted = false; supabase.removeChannel(channel); };
   }, [roomId, user, guest]);
 
-  // Handle color enforcement
+  // Bootstrap online state once per room seat so the AI mode never leaks into friend matches.
   useEffect(() => {
-    if (seat === "host") setPlayerColor("red");
-    else if (seat === "guest") setPlayerColor("black");
-    // Only init if we are hosting, the guests will receive state via Supabase realtime
-    if (seat === "host" && status === "loading") {
-      initGame("vs-human-online", 0, "rapid-10", "red");
+    if (!room || seat === "spectator") return;
+
+    const playerColor = seat === "guest" ? "black" : "red";
+    const bootstrapKey = `${roomId}:${seat}`;
+    const board = room.board ?? createInitialBoard();
+    const timeControl = normalizeTimeControl(room.time_control);
+    const currentTurn = room.current_turn === "black" ? "black" : "red";
+
+    setPlayerColor(playerColor);
+
+    if (initializedStoreFor.current !== bootstrapKey) {
+      initGame("vs-human-online", 0, timeControl, playerColor);
+      useGameStore.getState().applyRemoteState(board, currentTurn, room.move_history ?? []);
+      initializedStoreFor.current = bootstrapKey;
     }
-  }, [seat, setPlayerColor, initGame, status]);
+
+    if (!room.board) {
+      void supabase.from("rooms").update({
+        board: board as any,
+        current_turn: currentTurn,
+        move_history: room.move_history ?? [],
+      }).eq("code", roomId);
+    }
+  }, [room, roomId, seat, initGame, setPlayerColor]);
 
   // Sync our moves to the server
   useEffect(() => {
     if (status !== "playing") return;
-    if (!room) return;
+    if (!room || seat === "spectator") return;
     // We only broadcast if WE just made a move (which means it's now the OTHER player's turn, OR we just took a piece and we are a specific player).
     // Actually, simpler: if our local moveCount is greater than the room's moveHistory length, it means we made a move locally.
     const roomMoves = room.move_history?.length || 0;
     if (state.moveCount > roomMoves) {
-      supabase.from("rooms").update({
+      void supabase.from("rooms").update({
         board: state.board as any,
         current_turn: state.currentTurn,
         move_history: state.moveHistory.map(m => m.notation) as any
-      }).eq("code", roomId).then();
+      }).eq("code", roomId);
     }
-  }, [state.moveCount, status, room, roomId]);
+  }, [state.board, state.currentTurn, state.moveCount, state.moveHistory, status, room, roomId, seat]);
 
   const takeSeat = async () => {
     const name = user?.user_metadata?.display_name || guest?.display_name || "Guest";
@@ -105,6 +155,10 @@ function Room() {
   };
 
   const link = typeof window !== "undefined" ? `${window.location.origin}/play/${roomId}` : "";
+  const handleBoardClick = (row: number, col: number) => {
+    if (status !== "playing" || seat === "spectator") return;
+    selectPiece(row, col);
+  };
 
   return (
     <AppShell>
@@ -119,7 +173,7 @@ function Room() {
               {status === "loading" ? "Loading…" : status === "waiting" ? "Awaiting opponent" : "Match in progress"}
             </div>
           </div>
-          <Board flipped={seat === "guest"} />
+          <Board flipped={seat === "guest"} onSquareClick={handleBoardClick} />
           {status === "waiting" && seat === "host" && (
             <div className="mt-4 dossier p-4">
               <div className="font-sans text-[11px] uppercase tracking-wider text-gold mb-2">Share this link</div>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { createInitialBoard } from "@/lib/game/engine";
 
 export const Route = createFileRoute("/play/friend")({
   head: () => ({ meta: [{ title: "Friend Match — Checker.com" }] }),
@@ -31,6 +32,9 @@ function PlayFriend() {
         code,
         host_user_id: user?.id ?? null,
         host_guest_name: user ? null : hostName,
+        board: createInitialBoard() as any,
+        current_turn: "red",
+        move_history: [] as any,
         time_control: tc,
         status: "waiting",
       });

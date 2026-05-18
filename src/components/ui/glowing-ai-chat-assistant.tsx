@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Paperclip, Link as LinkIcon, Code, Mic, Send, Info, Bot, X, Sparkles, User } from 'lucide-react';
+import { Paperclip, Mic, Send, Info, Bot, X, Sparkles, User } from 'lucide-react';
+import { getGrandmasterAssistantReply } from "@/lib/assistant";
 
 interface ChatMessage {
   role: 'user' | 'ai';
@@ -29,37 +30,22 @@ export const FloatingAiAssistant = () => {
     }
   }, [messages, isTyping, isChatOpen]);
 
-  // Simulate AI Response
-  const simulateAI = (userMsg: string) => {
+  const respondToUser = (userMsg: string, nextMessages: ChatMessage[]) => {
     setIsTyping(true);
     setTimeout(() => {
-      let response = "That's an interesting tactical idea. Remember, controlling the center is the key to creating strong outposts.";
-      
-      const lower = userMsg.toLowerCase();
-      if (lower.includes('backward') || lower.includes('cis') || lower.includes('kazakhstan')) {
-        response = "Ah! In CIS rules, remember that simple pieces CAN capture backwards. This completely changes defensive formations, as you cannot simply slip behind an enemy piece to be safe.";
-      } else if (lower.includes('king') || lower.includes('crown')) {
-        response = "A King is a powerful piece. It flies across empty diagonals! To trap a King, you generally need three pieces working together on the main diagonal.";
-      } else if (lower.includes('strategy') || lower.includes('open')) {
-        response = "A fundamental opening strategy is to develop your pieces towards the center and keep your back row intact as long as possible to prevent enemy Kings.";
-      } else if (lower.includes('play')) {
-        response = "To play, you can head over to the Train or Puzzle sections, or create a Local Game room. I will automatically analyze your moves in the Analysis tab!";
-      } else if (lower.includes('hello') || lower.includes('hi')) {
-        response = "Hello there! Found any tricky positions you want me to look at?";
-      }
-
-      setMessages((prev) => [...prev, { role: 'ai', content: response }]);
+      const response = getGrandmasterAssistantReply(userMsg, nextMessages);
+      setMessages([...nextMessages, { role: 'ai', content: response }]);
       setIsTyping(false);
-    }, 1200 + Math.random() * 1000);
+    }, 500 + Math.random() * 350);
   };
 
   const handleSend = () => {
-    if (message.trim()) {
-      const newMsg = message.trim();
-      setMessages((prev) => [...prev, { role: 'user', content: newMsg }]);
-      setMessage('');
-      simulateAI(newMsg);
-    }
+    if (!message.trim() || isTyping) return;
+    const newMsg = message.trim();
+    const nextMessages = [...messages, { role: 'user' as const, content: newMsg }];
+    setMessages(nextMessages);
+    setMessage('');
+    respondToUser(newMsg, nextMessages);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -131,7 +117,7 @@ export const FloatingAiAssistant = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 text-[10px] uppercase font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full">
-                GPT-4 Vision
+                Checkers Coach
               </span>
               <button 
                 onClick={() => setIsChatOpen(false)}
@@ -197,12 +183,12 @@ export const FloatingAiAssistant = () => {
                 onKeyDown={handleKeyDown}
                 rows={1}
                 className="w-full px-5 py-4 bg-transparent border-none outline-none resize-none text-[15px] text-zinc-100 placeholder-zinc-500 max-h-[120px] overflow-y-auto min-h-[56px] pr-14"
-                placeholder="Ask about a move, rule, or tactic..."
+                placeholder="Ask any question about checkers or Checker.com..."
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               />
               <button 
                 onClick={handleSend}
-                disabled={!message.trim()}
+                disabled={!message.trim() || isTyping}
                 className="absolute right-3 bottom-2.5 p-2 bg-amber-600 rounded-xl text-white shadow-md disabled:bg-zinc-800 disabled:text-zinc-600 transition-all hover:bg-amber-500 active:scale-95"
               >
                 <Send className="w-4 h-4 translate-x-px" />
