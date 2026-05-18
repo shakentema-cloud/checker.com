@@ -7,7 +7,7 @@ import {
   type TemirCurrentBoardContext,
   type TemirNavigateAction,
   type TemirRouteTarget,
-} from "@/lib/temir-ai-types";
+} from "./temir-ai-types";
 
 const APP_PAGES = [
   { path: "/play", purpose: "Play lobby for choosing AI, local, or friend matches." },
