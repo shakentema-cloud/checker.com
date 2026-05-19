@@ -22,7 +22,12 @@ A platform gives you a reason to come back.
 Live demo: https://checker-com.vercel.app/
 GitHub: https://github.com/shakentema-cloud/checker.com
 
-Temir AI is built into the product now. It lives inside Checker.com itself, answers checkers-specific questions, helps users navigate the app, and can teach directly from live board positions.
+
+I made my custom GPT Checker-com that navigates user in the app, answers to any question about our product and teaches.
+
+GPT Checker-com : https://chatgpt.com/g/g-6a0a0dc50c1081919e669b2ca14d0f4d-checker-com
+
+Temir AI is built into the product now. It lives inside Checker.com itself, answers checkers-specific questions, helps users navigate the app, and can teach directly from live board positions.I need AI APIs only.
 
 ---
 
