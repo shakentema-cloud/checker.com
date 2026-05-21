@@ -1,8 +1,7 @@
 // Cloudflare Worker entrypoint for the Temir AI API.
-// Strategy: local-first brain always runs and produces a valid response.
-// OpenAI is an optional enhancement layer — any failure (missing key, 401,
-// 429 quota, network error) is silently swallowed and the local answer is
-// returned instead, so the user never sees a broken assistant.
+// Local-first brain always runs and produces a valid response.
+// OpenAI is optional — any failure (missing key, 401, 429 quota,
+// network) is silently swallowed and the local answer is returned.
 
 import {
   maybeEnhanceWithOpenAi,
@@ -30,7 +29,7 @@ function buildOpenAiConfig(env: unknown): OpenAiConfig | null {
   return {
     apiKey,
     model: getEnvString(env, "OPENAI_MODEL") ?? "gpt-4o-mini",
-    timeoutMs: 6000,
+    timeoutMs: 5000,
   };
 }
 
@@ -46,7 +45,16 @@ export async function handleTemirAiRequest(
   };
 
   const draft = runTemirLocalBrain(safeBody);
-  const openAiConfig = buildOpenAiConfig(env);
-  const enhanced = await maybeEnhanceWithOpenAi(safeBody, draft, openAiConfig);
-  return sanitizeResponse(enhanced, safeBody.currentBoard);
+  let enhanced = draft;
+  try {
+    const openAiConfig = buildOpenAiConfig(env);
+    enhanced = await maybeEnhanceWithOpenAi(safeBody, draft, openAiConfig);
+  } catch {
+    enhanced = draft;
+  }
+  try {
+    return sanitizeResponse(enhanced, safeBody.currentBoard);
+  } catch {
+    return sanitizeResponse(draft, safeBody.currentBoard);
+  }
 }

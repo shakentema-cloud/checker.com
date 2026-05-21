@@ -78,6 +78,15 @@ function buildVisualBoardFromResponse(
     response.recommendedMoveIndex < snapshot.visualMoves.length
   ) {
     const move = snapshot.visualMoves[response.recommendedMoveIndex];
+    const allCaptures = snapshot.visualMoves.filter((m) => m.captures.length > 0);
+    const forcedCapture = allCaptures.length > 0;
+    const highlightedSquares = [
+      ...move.captures.map((p) => ({ row: p.row, col: p.col })),
+      { row: move.to.row, col: move.to.col },
+    ];
+    const alternativeMoves = allCaptures.filter(
+      (m) => !(m.from.row === move.from.row && m.from.col === move.from.col && m.to.row === move.to.row && m.to.col === move.to.col),
+    );
     return {
       board: cloneBoard(snapshot.board),
       currentTurn: snapshot.currentTurn,
@@ -85,6 +94,9 @@ function buildVisualBoardFromResponse(
       validMoves: [move],
       lastMove: null,
       caption: `Temir AI recommends ${moveToNotation(move)} here. The highlighted piece and landing square show the practical move.`,
+      forcedCapture,
+      highlightedSquares,
+      alternativeMoves,
     };
   }
 
@@ -314,9 +326,21 @@ export const FloatingAiAssistant = () => {
 
                   {msg.visualBoard && (
                     <div className="w-full rounded-2xl border border-zinc-700/60 bg-zinc-950/70 p-3">
-                      <div className="mb-3 text-[11px] uppercase tracking-[0.24em] text-gold/80">
-                        Board Teaching View
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="text-[11px] uppercase tracking-[0.24em] text-gold/80">
+                          Board Teaching View
+                        </div>
+                        {msg.visualBoard.forcedCapture && (
+                          <div className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-amber-300">
+                            Forced capture
+                          </div>
+                        )}
                       </div>
+                      {msg.visualBoard.forcedCapture && (
+                        <div className="mb-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/90">
+                          Captures are mandatory in this position — {msg.visualBoard.currentTurn === "red" ? "Red" : "Black"} must play a jump.
+                        </div>
+                      )}
                       <div className="mx-auto max-w-[300px]">
                         <Board
                           board={msg.visualBoard.board}
@@ -325,6 +349,7 @@ export const FloatingAiAssistant = () => {
                           lastMove={msg.visualBoard.lastMove}
                           flipped={msg.visualBoard.currentTurn === "black"}
                           onSquareClick={() => {}}
+                          highlightedSquares={msg.visualBoard.highlightedSquares}
                         />
                       </div>
                       <p className="mt-3 text-sm leading-relaxed text-zinc-300">{msg.visualBoard.caption}</p>

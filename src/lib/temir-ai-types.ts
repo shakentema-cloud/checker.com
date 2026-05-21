@@ -70,4 +70,7 @@ export interface TemirVisualBoard {
   validMoves: Move[];
   lastMove: Move | null;
   caption: string;
+  forcedCapture?: boolean;
+  highlightedSquares?: Position[];
+  alternativeMoves?: Move[];
 }

@@ -10,6 +10,7 @@ interface BoardProps {
   validMoves?: Move[];
   lastMove?: Move | null;
   onSquareClick?: (r: number, col: number) => void;
+  highlightedSquares?: Position[];
 }
 
 export function Board({ 
@@ -18,7 +19,8 @@ export function Board({
   selectedPiece, 
   validMoves, 
   lastMove: propLastMove,
-  onSquareClick
+  onSquareClick,
+  highlightedSquares,
 }: BoardProps) {
   const storeState = useGameStore((s) => s.state);
   const storeSelectPiece = useGameStore((s) => s.selectPiece);
@@ -30,6 +32,7 @@ export function Board({
   const handleClick = onSquareClick || storeSelectPiece;
   const rows = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
   const cols = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
+  const highlightSet = new Set((highlightedSquares ?? []).map((p) => `${p.row}-${p.col}`));
 
   return (
     <div
@@ -98,6 +101,12 @@ export function Board({
                   <div
                     className="absolute inset-1 rounded-md border-2"
                     style={{ borderColor: "var(--board-capture)" }}
+                  />
+                )}
+                {highlightSet.has(`${r}-${c}`) && (
+                  <div
+                    className="absolute inset-1 rounded-md border-2 pointer-events-none animate-pulse"
+                    style={{ borderColor: "var(--gold-bright, #f59e0b)", boxShadow: "0 0 12px 2px rgba(245,158,11,0.4)" }}
                   />
                 )}
                 {piece && <PieceView piece={piece} selected={isSelected} />}
