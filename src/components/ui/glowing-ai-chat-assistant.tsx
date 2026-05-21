@@ -78,6 +78,15 @@ function buildVisualBoardFromResponse(
     response.recommendedMoveIndex < snapshot.visualMoves.length
   ) {
     const move = snapshot.visualMoves[response.recommendedMoveIndex];
+    const allCaptures = snapshot.visualMoves.filter((m) => m.captures.length > 0);
+    const forcedCapture = allCaptures.length > 0;
+    const highlightedSquares = [
+      ...move.captures.map((p) => ({ row: p.row, col: p.col })),
+      { row: move.to.row, col: move.to.col },
+    ];
+    const alternativeMoves = allCaptures.filter(
+      (m) => !(m.from.row === move.from.row && m.from.col === move.from.col && m.to.row === move.to.row && m.to.col === move.to.col),
+    );
     return {
       board: cloneBoard(snapshot.board),
       currentTurn: snapshot.currentTurn,
@@ -85,6 +94,9 @@ function buildVisualBoardFromResponse(
       validMoves: [move],
       lastMove: null,
       caption: `Temir AI recommends ${moveToNotation(move)} here. The highlighted piece and landing square show the practical move.`,
+      forcedCapture,
+      highlightedSquares,
+      alternativeMoves,
     };
   }
 
