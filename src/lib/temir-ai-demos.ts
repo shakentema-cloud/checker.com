@@ -1,4 +1,4 @@
-import { createEmptyBoard, getValidMovesForPiece } from "@/lib/game/engine";
+import { createEmptyBoard, getAllValidMoves, getValidMovesForPiece } from "@/lib/game/engine";
 import type { Board, Move, PlayerColor, Piece, Position } from "@/lib/game/types";
 import type { TemirBoardDemoId, TemirVisualBoard } from "@/lib/temir-ai-types";
 
@@ -14,24 +14,43 @@ function setPiece(board: Board, row: number, col: number, piece: Piece) {
   board[row][col] = piece;
 }
 
+function highlightsFromMove(move: Move): Position[] {
+  return [...move.captures.map((p) => ({ row: p.row, col: p.col })), { row: move.to.row, col: move.to.col }];
+}
+
 function buildVisualBoard(definition: DemoBuilder): TemirVisualBoard {
   const validMoves = getValidMovesForPiece(
     definition.board,
     definition.focusFrom,
     definition.currentTurn,
   );
-  const focusMove = validMoves.find(
-    (move) =>
-      move.to.row === definition.focusTo.row && move.to.col === definition.focusTo.col,
+  const focusMove =
+    validMoves.find(
+      (move) =>
+        move.to.row === definition.focusTo.row && move.to.col === definition.focusTo.col,
+    ) ?? validMoves[0];
+
+  // Detect forced capture across the whole side to move.
+  const allMoves = getAllValidMoves(definition.board, definition.currentTurn);
+  const forcedCapture = allMoves.some((m) => m.captures.length > 0);
+
+  const chosen = focusMove ? [focusMove] : [];
+  const alternatives = allMoves.filter(
+    (m) =>
+      m.captures.length > 0 &&
+      !(focusMove && m.from.row === focusMove.from.row && m.from.col === focusMove.from.col && m.to.row === focusMove.to.row && m.to.col === focusMove.to.col),
   );
 
   return {
     board: definition.board,
     currentTurn: definition.currentTurn,
     selectedPiece: definition.focusFrom,
-    validMoves: focusMove ? [focusMove] : validMoves.slice(0, 1),
+    validMoves: chosen,
     lastMove: null,
     caption: definition.caption,
+    forcedCapture,
+    highlightedSquares: focusMove ? highlightsFromMove(focusMove) : [],
+    alternativeMoves: alternatives,
   };
 }
 
@@ -41,7 +60,7 @@ function mandatoryCaptureDemo(): DemoBuilder {
   setPiece(board, 4, 3, { color: "black", type: "man", id: "mc-black-1" });
   setPiece(board, 6, 5, { color: "red", type: "man", id: "mc-red-2" });
   return {
-    caption: "Temir AI: captures are mandatory. Red must jump from c3 to e5 here.",
+    caption: "Captures are mandatory. Red MUST jump from c3 to e5 — quiet moves are illegal while a capture exists.",
     currentTurn: "red",
     board,
     focusFrom: { row: 5, col: 2 },
@@ -55,7 +74,7 @@ function backwardCaptureDemo(): DemoBuilder {
   setPiece(board, 5, 4, { color: "black", type: "man", id: "bc-black-1" });
   setPiece(board, 7, 6, { color: "red", type: "man", id: "bc-red-2" });
   return {
-    caption: "Temir AI: in this app's CIS ruleset, men can capture backward. Red jumps backward from d4 to f2.",
+    caption: "In the CIS / Kazakhstan ruleset men capture backward too. Red jumps backward from d4 to f2.",
     currentTurn: "red",
     board,
     focusFrom: { row: 4, col: 3 },
@@ -69,7 +88,7 @@ function doubleJumpDemo(): DemoBuilder {
   setPiece(board, 5, 2, { color: "black", type: "man", id: "dj-black-1" });
   setPiece(board, 3, 4, { color: "black", type: "man", id: "dj-black-2" });
   return {
-    caption: "Temir AI: the landing square matters. This red piece starts a two-jump sequence from b2 to f6.",
+    caption: "The landing square decides whether the chain continues. Red starts a two-jump sequence from b2 to f6.",
     currentTurn: "red",
     board,
     focusFrom: { row: 6, col: 1 },
@@ -82,7 +101,7 @@ function flyingKingDemo(): DemoBuilder {
   setPiece(board, 7, 0, { color: "red", type: "king", id: "fk-red-1" });
   setPiece(board, 4, 3, { color: "black", type: "man", id: "fk-black-1" });
   return {
-    caption: "Temir AI: flying kings travel along open diagonals and can land beyond the captured piece.",
+    caption: "Flying kings travel along open diagonals and may land on any empty square beyond the captured piece.",
     currentTurn: "red",
     board,
     focusFrom: { row: 7, col: 0 },
@@ -95,7 +114,7 @@ function promotionRaceDemo(): DemoBuilder {
   setPiece(board, 1, 2, { color: "red", type: "man", id: "pr-red-1" });
   setPiece(board, 6, 5, { color: "black", type: "man", id: "pr-black-1" });
   return {
-    caption: "Temir AI: count tempi in a promotion race. Red is one move from crowning on the back rank.",
+    caption: "Count tempi in a promotion race. Red is one move from crowning on the back rank.",
     currentTurn: "red",
     board,
     focusFrom: { row: 1, col: 2 },
@@ -110,7 +129,7 @@ function backRankDefenseDemo(): DemoBuilder {
   setPiece(board, 2, 1, { color: "black", type: "man", id: "br-black-1" });
   setPiece(board, 4, 3, { color: "black", type: "man", id: "br-black-2" });
   return {
-    caption: "Temir AI: keep the back rank protected when promotion threats are coming down the board.",
+    caption: "Hold the back rank while promotion threats are still on the board.",
     currentTurn: "red",
     board,
     focusFrom: { row: 7, col: 4 },
