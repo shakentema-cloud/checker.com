@@ -232,32 +232,41 @@ async function maybeEnhanceWithOpenAi(body: TemirAssistantRequest, draft: TemirA
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) return draft;
   const model = process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
-  try {
+  const HARD_BUDGET_MS = 8000;
+  const SOFT_TIMEOUT_MS = 5000;
+  const call = async (): Promise<TemirAssistantResponse> => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
-    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model, temperature: 0.4, response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: "You are Temir AI, a built-in checkers coach inside Checker.com. Refine the draft answer so it sounds like a calm tutor. Do NOT change the move, route, or demo — only refine the 'answer' wording. Reply with JSON only: {\"answer\": string}." },
-          { role: "user", content: `User asked: ${body.message}\nDraft answer: ${draft.answer}\nReturn JSON: {"answer": "..."}` },
-        ],
-      }),
-    }).finally(() => clearTimeout(timeout));
-    if (!resp.ok) { console.warn("[Temir AI] OpenAI enhancement skipped:", resp.status); return draft; }
-    const payload: any = await resp.json();
-    const text: string | undefined = payload?.choices?.[0]?.message?.content;
-    if (!text) return draft;
-    const parsed = JSON.parse(text);
-    if (typeof parsed?.answer === "string" && parsed.answer.trim()) return { ...draft, answer: parsed.answer.trim() };
-    return draft;
-  } catch (error) {
-    console.warn("[Temir AI] OpenAI enhancement failed, using local answer:", error);
-    return draft;
-  }
+    const timeout = setTimeout(() => controller.abort(), SOFT_TIMEOUT_MS);
+    try {
+      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model, temperature: 0.4, response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: "You are Temir AI, a built-in checkers coach inside Checker.com. Refine the draft answer so it sounds like a calm tutor. Do NOT change the move, route, or demo — only refine the 'answer' wording. Reply with JSON only: {\"answer\": string}." },
+            { role: "user", content: `User asked: ${body.message}\nDraft answer: ${draft.answer}\nReturn JSON: {"answer": "..."}` },
+          ],
+        }),
+      });
+      if (!resp.ok) { console.info("[Temir AI] enhancement skipped (status)", resp.status); return draft; }
+      const payload: any = await resp.json().catch(() => null);
+      const text: string | undefined = payload?.choices?.[0]?.message?.content;
+      if (!text) return draft;
+      let parsed: any = null;
+      try { parsed = JSON.parse(text); } catch { return draft; }
+      if (typeof parsed?.answer === "string" && parsed.answer.trim()) return { ...draft, answer: parsed.answer.trim() };
+      return draft;
+    } catch (error) {
+      console.info("[Temir AI] enhancement skipped (threw)", (error as Error)?.name ?? "error");
+      return draft;
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+  const budget = new Promise<TemirAssistantResponse>((resolve) => setTimeout(() => resolve(draft), HARD_BUDGET_MS));
+  try { return await Promise.race([call(), budget]); } catch { return draft; }
 }
 
 // ---------- Handler ----------
