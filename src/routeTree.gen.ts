@@ -28,7 +28,6 @@ import { Route as PlayLocalRouteImport } from './routes/play.local'
 import { Route as PlayFriendRouteImport } from './routes/play.friend'
 import { Route as PlayAiRouteImport } from './routes/play.ai'
 import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
-import { Route as ApiTemirAiRouteImport } from './routes/api/temir-ai'
 
 const TrainRoute = TrainRouteImport.update({
   id: '/train',
@@ -125,11 +124,6 @@ const PlayRoomIdRoute = PlayRoomIdRouteImport.update({
   path: '/play/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTemirAiRoute = ApiTemirAiRouteImport.update({
-  id: '/api/temir-ai',
-  path: '/api/temir-ai',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -144,7 +138,6 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRoute
   '/train': typeof TrainRoute
-  '/api/temir-ai': typeof ApiTemirAiRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
   '/play/friend': typeof PlayFriendRoute
@@ -166,7 +159,6 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRoute
   '/train': typeof TrainRoute
-  '/api/temir-ai': typeof ApiTemirAiRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
   '/play/friend': typeof PlayFriendRoute
@@ -189,7 +181,6 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/settings': typeof SettingsRoute
   '/train': typeof TrainRoute
-  '/api/temir-ai': typeof ApiTemirAiRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/play/ai': typeof PlayAiRoute
   '/play/friend': typeof PlayFriendRoute
@@ -213,7 +204,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/settings'
     | '/train'
-    | '/api/temir-ai'
     | '/play/$roomId'
     | '/play/ai'
     | '/play/friend'
@@ -235,7 +225,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/settings'
     | '/train'
-    | '/api/temir-ai'
     | '/play/$roomId'
     | '/play/ai'
     | '/play/friend'
@@ -257,7 +246,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/settings'
     | '/train'
-    | '/api/temir-ai'
     | '/play/$roomId'
     | '/play/ai'
     | '/play/friend'
@@ -280,7 +268,6 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SettingsRoute: typeof SettingsRoute
   TrainRoute: typeof TrainRoute
-  ApiTemirAiRoute: typeof ApiTemirAiRoute
   PlayRoomIdRoute: typeof PlayRoomIdRoute
   PlayAiRoute: typeof PlayAiRoute
   PlayFriendRoute: typeof PlayFriendRoute
@@ -425,13 +412,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/temir-ai': {
-      id: '/api/temir-ai'
-      path: '/api/temir-ai'
-      fullPath: '/api/temir-ai'
-      preLoaderRoute: typeof ApiTemirAiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -448,7 +428,6 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SettingsRoute: SettingsRoute,
   TrainRoute: TrainRoute,
-  ApiTemirAiRoute: ApiTemirAiRoute,
   PlayRoomIdRoute: PlayRoomIdRoute,
   PlayAiRoute: PlayAiRoute,
   PlayFriendRoute: PlayFriendRoute,
