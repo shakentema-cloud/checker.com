@@ -1,6 +1,9 @@
 import React, { startTransition, useEffect, useRef, useState } from "react";
 import { Info, Bot, X, Sparkles, User, Send, Compass } from "lucide-react";
 import { useLocation, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+
+import { askTemirAi } from "@/lib/temir-ai.functions";
 
 import { Board } from "@/components/game/Board";
 import { cloneBoard, getAllValidMoves, moveToNotation } from "@/lib/game/engine";
@@ -118,6 +121,7 @@ export const FloatingAiAssistant = () => {
   const router = useRouter();
   const location = useLocation();
   const gameState = useGameStore((s) => s.state);
+  const callTemir = useServerFn(askTemirAi);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -167,24 +171,7 @@ export const FloatingAiAssistant = () => {
     setIsThinking(true);
 
     try {
-      const response = await fetch("/api/temir-ai", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const raw = await response.text();
-      let data: TemirAssistantResponse | null = null;
-
-      try {
-        data = JSON.parse(raw) as TemirAssistantResponse;
-      } catch {
-        data = null;
-      }
-
-      if (!response.ok) {
-        throw new Error(data?.answer || raw || `Temir AI request failed with status ${response.status}`);
-      }
+      const data = (await callTemir({ data: payload })) as TemirAssistantResponse | null;
 
       if (!data) {
         throw new Error("Temir AI returned an unreadable response.");
