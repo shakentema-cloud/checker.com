@@ -121,6 +121,7 @@ export const FloatingAiAssistant = () => {
   const router = useRouter();
   const location = useLocation();
   const gameState = useGameStore((s) => s.state);
+  const callTemir = useServerFn(askTemirAi);
 
   useEffect(() => {
     if (scrollRef.current) {
