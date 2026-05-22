@@ -84,10 +84,10 @@ export function HeroGeometric({
             transition: {
                 duration: 1,
                 delay: 0.5 + i * 0.2,
-                ease: "easeOut",
+                ease: [0.23, 0.86, 0.39, 0.96] as const,
             },
         }),
-    };
+    } as const;
 
     return (
         <div className="relative min-h-[90vh] w-full flex items-center justify-center overflow-hidden bg-transparent">
