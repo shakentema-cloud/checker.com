@@ -1,6 +1,9 @@
 import React, { startTransition, useEffect, useRef, useState } from "react";
 import { Info, Bot, X, Sparkles, User, Send, Compass } from "lucide-react";
 import { useLocation, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+
+import { askTemirAi } from "@/lib/temir-ai.functions";
 
 import { Board } from "@/components/game/Board";
 import { cloneBoard, getAllValidMoves, moveToNotation } from "@/lib/game/engine";
