@@ -278,8 +278,8 @@ function PlayAI() {
                   <li key={i} className="ledger-row flex items-baseline justify-between gap-2">
                     <span className="text-ink-muted w-7 text-[10px]">{isRed ? `${pair}.` : ""}</span>
                     <span className="flex-1 text-ink font-mono text-sm">{h.notation}</span>
-                    {h.captures && h.captures.length > 0 && (
-                      <span className="text-[10px] text-oxblood">×{h.captures.length}</span>
+                    {h.move.captures && h.move.captures.length > 0 && (
+                      <span className="text-[10px] text-oxblood">×{h.move.captures.length}</span>
                     )}
                     {h.quality && (
                       <span className="text-[10px] uppercase tracking-wider font-sans"

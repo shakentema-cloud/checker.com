@@ -134,11 +134,10 @@ function Dashboard() {
                  )}
                  {coachTab === "plan" && (
                    <ul className="space-y-3">
-                      {selectedCoach.trainingPlan.length === 0 && <p className="text-ink-muted italic">No action items.</p>}
-                      {selectedCoach.trainingPlan.map((p, i) => (
-                        <li key={i} className="flex gap-3 items-start">
+                      {(["lesson", "drill", "puzzle"] as const).map((k) => (
+                        <li key={k} className="flex gap-3 items-start">
                            <span className="text-forest mt-1">✓</span>
-                           <span>{p}</span>
+                           <span><strong className="font-sans text-[10px] uppercase tracking-wider text-gold mr-2">{k}</strong>{selectedCoach.trainingPlan[k]}</span>
                         </li>
                       ))}
                    </ul>
